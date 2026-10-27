@@ -1,0 +1,238 @@
+// Platea — esquema de base de datos multi-tenant
+// Aislamiento: todas las tablas de negocio llevan tenantId. La extensión de
+// Prisma (src/lib/prisma.ts) inyecta el filtro en lecturas y lo fuerza en
+// creaciones. Tenant es la entidad raíz y no se filtra por sí misma.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  STAFF // mesero
+  KITCHEN // cocina (KDS)
+}
+
+enum OrderStatus {
+  PENDING
+  PREPARING
+  READY
+  SERVED
+  CANCELLED
+}
+
+enum OrderItemStatus {
+  PENDING
+  PREPARING
+  READY
+  SERVED
+}
+
+model Tenant {
+  id               String   @id @default(cuid())
+  name             String
+  slug             String   @unique
+  logoUrl          String?
+  primaryColor     String   @default("#111827")
+  secondaryColor   String?
+  subscriptionPlan String   @default("free")
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  users       User[]
+  tables      Table[]
+  categories  Category[]
+  dishes      Dish[]
+  ingredients Ingredient[]
+  orders      Order[]
+  sessions    Session[]
+  reviews     Review[]
+
+  @@map("tenants")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  role         UserRole @default(STAFF)
+  tenantId     String
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+
+  @@index([tenantId])
+  @@map("users")
+}
+
+model Table {
+  id        String    @id @default(cuid())
+  number    Int
+  qrCode    String    @unique // token opaco que viaja en la URL del QR
+  isActive  Boolean   @default(true)
+  tenantId  String
+  tenant    Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  orders    Order[]
+  sessions  Session[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@unique([tenantId, number])
+  @@index([tenantId])
+  @@map("tables")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  tenantId     String
+  tableId      String // obligatorio: toda sesión de comensal nace de un QR de mesa
+  table        Table    @relation(fields: [tableId], references: [id])
+  deviceInfo   String?
+  lastActiveAt DateTime @default(now())
+  expiresAt    DateTime
+  orders       Order[]
+  reviews      Review[]
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, tableId])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String?
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  dishes    Dish[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, slug])
+  @@index([tenantId])
+  @@map("categories")
+}
+
+model Dish {
+  id              String           @id @default(cuid())
+  name            String
+  description     String?
+  price           Decimal          @db.Decimal(10, 2)
+  imageUrl        String? // se asigna tras POST /api/upload (Cloudinary)
+  isAvailable     Boolean          @default(true)
+  isOutOfStock    Boolean          @default(false) // "agotado"
+  isSpicy         Boolean          @default(false)
+  isVegetarian    Boolean          @default(false)
+  isGlutenFree    Boolean          @default(false)
+  allergens       String[] // text[] en PostgreSQL
+  averageRating   Decimal          @default(0) @db.Decimal(3, 2)
+  reviewCount     Int              @default(0)
+  sortOrder       Int              @default(0)
+  categoryId      String
+  category        Category         @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  tenantId        String
+  tenant          Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  orderItems      OrderItem[]
+  reviews         Review[]
+  dishIngredients DishIngredient[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([tenantId, categoryId])
+  @@index([tenantId, isAvailable])
+  @@map("dishes")
+}
+
+model Ingredient {
+  id              String           @id @default(cuid())
+  name            String
+  unit            String // kg, g, unidad, litro
+  currentStock    Decimal          @default(0) @db.Decimal(10, 2) // se descuenta al pasar a PREPARING, nunca al crear el pedido
+  minStock        Decimal          @default(0) @db.Decimal(10, 2)
+  costPerUnit     Decimal?         @db.Decimal(10, 2)
+  tenantId        String
+  tenant          Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  dishIngredients DishIngredient[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([tenantId])
+  @@map("ingredients")
+}
+
+model DishIngredient {
+  id           String     @id @default(cuid())
+  dishId       String
+  dish         Dish       @relation(fields: [dishId], references: [id], onDelete: Cascade)
+  ingredientId String
+  ingredient   Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
+  quantity     Decimal    @db.Decimal(10, 3) // cantidad requerida por plato
+  createdAt    DateTime   @default(now())
+
+  @@unique([dishId, ingredientId])
+  @@index([ingredientId])
+  @@map("dish_ingredients")
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  rating    Int // 1-5, validado con Zod
+  comment   String?
+  dishId    String
+  dish      Dish     @relation(fields: [dishId], references: [id], onDelete: Cascade)
+  sessionId String?
+  session   Session? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  tenantId  String // desnormalizado para filtrado directo por tenant
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([tenantId, dishId])
+  @@map("reviews")
+}
+
+model Order {
+  id        String      @id @default(cuid())
+  status    OrderStatus @default(PENDING)
+  tableId   String?
+  table     Table?      @relation(fields: [tableId], references: [id], onDelete: SetNull)
+  sessionId String
+  session   Session     @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  tenantId  String
+  tenant    Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  items     OrderItem[]
+  total     Decimal     @db.Decimal(10, 2)
+  notes     String? // notas generales del pedido
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@index([tenantId, status])
+  @@index([tenantId, createdAt])
+  @@index([sessionId])
+  @@map("orders")
+}
+
+model OrderItem {
+  id         String          @id @default(cuid())
+  orderId    String
+  order      Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  dishId     String
+  dish       Dish            @relation(fields: [dishId], references: [id])
+  quantity   Int             @default(1)
+  notes      String? // "sin cebolla", "término medio"
+  price      Decimal         @db.Decimal(10, 2) // precio congelado al momento del pedido
+  itemStatus OrderItemStatus @default(PENDING)
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  @@index([orderId])
+  @@index([dishId])
+  @@map("order_items")
+}
