@@ -1,0 +1,23 @@
+# Dependencias
+**/node_modules
+
+# Builds
+**/dist
+**/coverage
+
+# Git
+.git
+.gitignore
+
+# Entorno (nunca copiar secretos a una imagen)
+.env
+**/.env
+
+# Logs
+**/*.log
+logs
+
+# Documentación y contexto (no se necesitan dentro de una imagen)
+.github
+README.md
+docker-compose.yml

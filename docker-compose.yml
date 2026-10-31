@@ -1,0 +1,23 @@
+# Entorno local de Platea: solo PostgreSQL.
+# Uso: docker compose up -d
+services:
+  platea-db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: platea_user
+      POSTGRES_PASSWORD: platea_pass
+      POSTGRES_DB: platea_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - platea_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U platea_user -d platea_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  platea_pgdata:
