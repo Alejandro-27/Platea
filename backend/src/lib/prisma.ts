@@ -14,11 +14,15 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 /**
- * Cliente Prisma acotado a un tenant. La lógica de inyección vive en
- * applyTenantScope (probada en tenant-scope.test.ts).
+ * Devuelve el cliente base o uno acotado al tenant. La lógica de inyección
+ * vive en applyTenantScope (probada en tenant-scope.test.ts).
+ *
+ * - Lecturas y escrituras por id: tenantId va en `where`.
+ * - Creaciones: tenantId se fuerza en `data`, ignorando el del payload.
  */
-export function tenantClient(tenantId: string): PrismaClient {
-  if (!tenantId) throw new Error('tenantClient: tenantId es obligatorio')
+export function getPrisma(tenantId?: string): PrismaClient {
+  if (tenantId === undefined) return prisma
+  if (tenantId.trim() === '') throw new Error('getPrisma: tenantId vacío')
 
   return prisma.$extends({
     name: 'tenant-isolation',

@@ -13,18 +13,20 @@
 
 - [x] Schema de Prisma completo
 - [x] Migración inicial
-- [ ] Auth JWT (registro/login de staff)
-- [ ] CRUD Tenants (Super Admin)
-- [ ] CRUD Users (Admin restaurante)
-- [ ] CRUD Tables + generación de QR
-- [ ] CRUD Categories
-- [ ] CRUD Dishes + upload de imágenes
-- [ ] CRUD Ingredients (inventario básico)
-- [ ] Sesiones anónimas para comensales
-- [ ] Orders (creación, estados, descuento de stock en `PREPARING`)
-- [ ] Reviews (calificaciones)
-- [ ] Integración completa de Socket.io (rooms y eventos)
-- [ ] Manejo centralizado de errores y respuestas `{ data }` / `{ error }`
+- [x] Auth JWT (login de staff y `/me`; alta de usuarios desde el admin)
+- [ ] CRUD Tenants (Super Admin) — pendiente de definir el rol `SUPER_ADMIN`
+- [x] CRUD Users (Admin restaurante)
+- [x] CRUD Tables + generación de QR
+- [x] CRUD Categories
+- [x] CRUD Dishes + upload de imágenes
+- [x] CRUD Ingredients (inventario básico)
+- [x] Sesiones anónimas para comensales
+- [x] Orders (creación, estados, descuento de stock en `PREPARING`)
+- [x] Reviews (calificaciones)
+- [x] Integración completa de Socket.io (rooms y eventos)
+- [x] Manejo centralizado de errores y respuestas `{ data }` / `{ error }`
+- [x] Seed de datos de demostración
+- [x] Helmet
 
 ## Fase 2 — Frontend Core (MVP) — pendiente
 
@@ -48,7 +50,7 @@
 - [ ] Deploy frontend (Vercel/Cloudflare Pages)
 - [ ] Deploy DB (Supabase/Neon)
 - [ ] Configuración de Cloudinary en producción
-- [ ] Helmet, rate limiting y hardening
+- [ ] Rate limiting y hardening (helmet ya implementado)
 - [ ] Smoke tests en producción
 
 ## Fase 4 — v1.5 (Post-MVP) — pendiente

@@ -67,13 +67,14 @@ Si una petición contradice estos documentos, **detente y pregunta** antes de ca
 
 ```bash
 npm run dev                 # ts-node-dev, recarga en caliente
-npm test                    # self-check de aislamiento multi-tenant
+npm test                    # self-checks: aislamiento, contraseñas y estados
 npx tsc --noEmit            # typecheck
 npm run build               # compilar a dist/
 npm start                   # ejecutar build
 npx prisma generate         # regenerar cliente
 npx prisma migrate dev --name <nombre>
 npx prisma migrate deploy
+npm run prisma:seed         # datos demo (admin@platea.local / admin1234)
 npx prisma studio
 ```
 

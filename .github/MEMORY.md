@@ -18,7 +18,7 @@ Módulos del MVP:
 ## Decisiones arquitectónicas clave
 
 1. **Multi-tenancy por `tenantId`**: todas las tablas de negocio relevantes llevan `tenantId`. `Tenant` es la entidad raíz y no se filtra por sí misma. `OrderItem` y `DishIngredient` heredan el tenant a través de `Order`/`Dish`.
-2. **Aislamiento con Prisma Client Extensions**: `tenantClient(tenantId)` intercepta operaciones y:
+2. **Aislamiento con Prisma Client Extensions**: `getPrisma(tenantId)` intercepta operaciones y:
    - inyecta `tenantId` en `where` para lecturas y escrituras;
    - fuerza `tenantId` en `data` para creaciones (ignora el valor enviado por el cliente);
    - **no** procesa relaciones anidadas. Un create anidado de un modelo con `tenantId` debe enviarlo explícitamente o fallará por NOT NULL.
@@ -39,8 +39,10 @@ Módulos del MVP:
 - Fastify 5 + `fastify-plugin`
 - Prisma 6.19 + PostgreSQL 16
 - Zod 4 para validación
-- JWT propio con `@fastify/jwt`
+- JWT propio con `@fastify/jwt` + `fast-jwt` (firma/verificación, expiración 7 días)
+- Contraseñas con `scrypt` de `node:crypto` (sin bcrypt/argon2)
 - Socket.io
+- `@fastify/helmet` para cabeceras de seguridad
 - `@fastify/multipart` para subida de archivos (no se usa Multer en este backend)
 - Cloudinary
 - `dotenv`
@@ -121,21 +123,48 @@ Módulos del MVP:
 ## Estado actual
 
 - Repositorio: `git@github.com:Alejandro-27/Platea.git`, rama de trabajo `develop`.
-- Backend inicializado con Fastify 5, Prisma 6 y TypeScript 5.9.
+- Backend con Fastify 5, Prisma 6 y TypeScript 5.9.
 - Schema completo + migración inicial aplicada (`prisma/migrations/20261027210715_init`).
 - Base de datos local con Docker (`platea-db`, PostgreSQL 16).
-- Plugins base: CORS, JWT, tenant, Socket.io.
-- Extensión de aislamiento multi-tenant implementada y probada.
-- Documentación de contexto creada (este directorio `.github/`).
-- **Módulos de negocio aún no implementados.**
+- Plugins: CORS, Helmet, JWT, tenant, Socket.io.
+- Aislamiento multi-tenant con `getPrisma(tenantId)` y self-check.
+- Autenticación staff con `scrypt` y JWT de 7 días.
+- Módulos implementados: auth, users, categories, dishes (con receta), ingredients, tables (+ QR), sessions anónimas, menú público, orders (estados + descuento de stock), reviews y upload a Cloudinary.
+- `buildApp()` exportado para tests y `start()` para ejecución.
+- Manejo centralizado de errores con formato `{ error: { code, message, details } }`.
+- Seed idempotente (`admin@platea.local` / `admin1234`) con tenant demo, mesas, categoría, platos e ingrediente.
+- **CRUD de tenants (Super Admin) pendiente.**
 - **Frontend aún no iniciado (Fase 2).**
+
+## API implementada (MVP)
+
+| Módulo | Endpoints |
+|---|---|
+| Auth | `POST /api/auth/login`, `GET /api/auth/me` |
+| Usuarios | `GET/POST /api/users`, `PATCH/DELETE /api/users/:id` |
+| Categorías | `GET/POST /api/categories`, `PATCH/DELETE /api/categories/:id` |
+| Platos | `GET/POST /api/dishes`, `GET/PATCH/DELETE /api/dishes/:id` |
+| Ingredientes | `GET/POST /api/ingredients`, `PATCH/DELETE /api/ingredients/:id` |
+| Mesas | `GET/POST /api/tables`, `PATCH/DELETE /api/tables/:id`, `GET /api/tables/:id/qr` |
+| Upload | `POST /api/upload` (multipart, solo ADMIN) |
+| Público | `GET /api/public/tenants/:tenantId/menu`, `POST /api/public/sessions`, `GET /api/public/sessions/:id` |
+| Pedidos comensal | `POST /api/public/orders`, `GET /api/public/orders/:id` |
+| Reviews | `POST /api/public/reviews` |
+| Pedidos staff | `GET /api/orders`, `PATCH /api/orders/:id/status`, `PATCH /api/orders/:id/items/:itemId/status` |
+
+Reglas de seguridad de la API:
+
+- Escrituras de catálogo y usuarios: `ADMIN`.
+- Lecturas de catálogo y pedidos: cualquier staff autenticado.
+- Upload: `ADMIN`.
+- Rutas públicas exigen `x-session-id` vigente salvo menú y creación de sesión.
+- El total del pedido se calcula en el backend con precios de la DB.
 
 ## Pendientes conocidos
 
 - Definir el diseño de **Super Admin** (el schema actual no tiene rol `SUPER_ADMIN` ni `tenantId` opcional).
-- Implementar auth staff, sesiones, upload, CRUDs, orders, reviews y eventos Socket.io.
 - Decidir si una cancelación posterior a `PREPARING` repone stock.
 - Configurar ESLint + Prettier y reformatear el backend (el código actual usa punto y coma).
-- Añadir helmet y rate limiting antes de producción.
-- Seed de datos de demostración.
+- Añadir rate limiting antes de producción (helmet ya está).
+- Valorar refresh tokens; hoy el JWT dura 7 días y no se renueva.
 - Frontend completo y despliegue.

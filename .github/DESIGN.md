@@ -44,6 +44,8 @@ El plugin deja:
 - `request.tenantId: string | null`
 - `request.db: PrismaClient` ya acotado al tenant (o el cliente base si no hay tenant).
 
+El cliente acotado se obtiene con `getPrisma(tenantId)`; sin argumento devuelve el cliente base.
+
 ### Aislamiento de datos
 
 `src/lib/tenant-scope.ts` define el alcance:
@@ -128,7 +130,7 @@ src/
 
 ### Manejo de errores
 
-Formato objetivo:
+Formato implementado:
 
 ```json
 {
@@ -246,7 +248,7 @@ frontend/
 }
 ```
 
-### Endpoints planificados (MVP)
+### Endpoints implementados (MVP)
 
 | Módulo | Endpoints |
 |---|---|
@@ -261,9 +263,9 @@ frontend/
 | Ingredientes | `GET/POST /api/ingredients`, `PATCH/DELETE /api/ingredients/:id` |
 | Pedidos staff | `GET /api/orders`, `PATCH /api/orders/:id/items/:itemId/status`, `PATCH /api/orders/:id/status` |
 | Usuarios | `GET/POST /api/users`, `PATCH/DELETE /api/users/:id` |
-| Tenants (Super Admin) | `GET/POST /api/tenants`, `PATCH /api/tenants/:id` |
+| Tenants (Super Admin) | Pendiente de definir el rol `SUPER_ADMIN` |
 
-> Los endpoints exactos pueden ajustarse al implementar cada módulo; las convenciones no.
+> Los `DELETE` de platos, categorías y mesas son borrados lógicos (`isAvailable`/`isActive`) para conservar historial.
 
 ## 6. Base de datos
 
@@ -284,6 +286,7 @@ frontend/
 - `prisma migrate deploy` en CI/producción (solo aplica).
 - El schema es la fuente de verdad; no editar tablas manualmente.
 - La migración inicial ya está versionada en `prisma/migrations/`.
+- `npm run prisma:seed` crea datos de demostración idempotentes (`admin@platea.local` / `admin1234`).
 
 ### Reglas de integridad
 
@@ -309,10 +312,10 @@ frontend/
 ## 8. Seguridad
 
 - HTTPS/WSS obligatorio en producción; CORS restringido a `FRONTEND_URL`.
-- JWT firmado con `JWT_SECRET` de 32+ caracteres; expiración corta.
-- Contraseñas hasheadas (algoritmo a definir al implementar auth; nunca texto plano).
-- Validación Zod en todos los inputs; límites de tamaño en uploads.
+- JWT firmado con `JWT_SECRET` de 32+ caracteres; expiración de 7 días (sin refresh por ahora).
+- Contraseñas con `scrypt` de `node:crypto` (sal aleatoria por usuario); nunca texto plano.
+- Validación Zod en todos los inputs; límites de tamaño en uploads (5 MB, JPEG/PNG/WebP).
 - Aislamiento por tenant en la capa Prisma + verificación de pertenencia en servicios.
 - No exponer trazas internas ni datos de otros tenants en errores.
-- Rate limiting y helmet antes de producción (pendientes).
+- Helmet implementado; rate limiting pendiente antes de producción.
 - Secretos solo en variables de entorno; `.env` fuera de Git.

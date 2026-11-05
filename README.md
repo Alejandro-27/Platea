@@ -85,10 +85,18 @@ El servicio `platea-db` queda escuchando en `localhost:5432` con las credenciale
 cd backend
 npm install
 npx prisma migrate deploy
+npm run prisma:seed
 npm run dev
 ```
 
-`npm install` ejecuta `prisma generate` (postinstall). `migrate deploy` aplica las migraciones existentes sin crear nuevas.
+`npm install` ejecuta `prisma generate` (postinstall). `migrate deploy` aplica las migraciones existentes sin crear nuevas. El seed crea el restaurante de demostración y un usuario ADMIN:
+
+```text
+Email:    admin@platea.local
+Password: admin1234
+```
+
+> Cambia esa contraseña antes de cualquier entorno compartido. El seed es idempotente.
 
 La API queda disponible en:
 
@@ -116,6 +124,7 @@ Platea/
 ├── backend/
 │   ├── prisma/
 │   │   ├── schema.prisma          # Modelo multi-tenant
+│   │   ├── seed.ts                # Datos de demostración
 │   │   └── migrations/            # Migraciones versionadas
 │   ├── src/
 │   │   ├── config/                # Validación de variables de entorno
@@ -172,9 +181,10 @@ En producción, `DATABASE_URL` apunta a Supabase/Neon y normalmente incluye `?ss
 | `npm run dev` | Servidor en desarrollo con recarga en caliente |
 | `npm run build` | Compila TypeScript a `dist/` |
 | `npm start` | Ejecuta el build de producción |
-| `npm test` | Self-check del aislamiento multi-tenant |
+| `npm test` | Self-checks de aislamiento, contraseñas y transiciones de estado |
 | `npm run prisma:generate` | Genera el cliente Prisma |
 | `npm run prisma:migrate` | Crea/aplica una migración en desarrollo |
+| `npm run prisma:seed` | Crea datos de demostración (idempotente) |
 | `npm run prisma:studio` | Abre Prisma Studio |
 
 ### Prisma
@@ -237,11 +247,11 @@ Se usan **Conventional Commits** (`feat`, `fix`, `docs`, `style`, `refactor`, `p
 
 - [x] Schema de Prisma completo
 - [x] Migración inicial
-- [ ] Auth JWT (registro/login de staff)
-- [ ] CRUD Tenants (Super Admin)
-- [ ] CRUD Users, Tables + QR, Categories, Dishes + upload, Ingredients
-- [ ] Sesiones anónimas, Orders, Reviews
-- [ ] Integración completa de Socket.io
+- [x] Auth JWT (login de staff y `/me`; usuarios se crean desde el admin)
+- [ ] CRUD Tenants (Super Admin) — pendiente de definir el rol
+- [x] CRUD Users, Tables + QR, Categories, Dishes + upload, Ingredients
+- [x] Sesiones anónimas, Orders, Reviews
+- [x] Eventos Socket.io (`order:new`, `order:updated`) y rooms autenticados
 
 ### Fase 2 — Frontend Core (pendiente)
 

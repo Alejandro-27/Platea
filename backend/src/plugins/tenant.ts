@@ -1,5 +1,5 @@
 import fp from 'fastify-plugin'
-import { prisma, tenantClient } from '../lib/prisma'
+import { getPrisma, prisma } from '../lib/prisma'
 import type { AuthUser } from '../types/auth'
 
 /**
@@ -43,7 +43,7 @@ export default fp(
       }
 
       request.tenantId = tenantId
-      request.db = tenantId ? tenantClient(tenantId) : prisma
+      request.db = getPrisma(tenantId ?? undefined)
     })
   },
   { name: 'tenant' },
