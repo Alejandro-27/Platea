@@ -12,37 +12,43 @@ const loginSchema = z.object({
 })
 
 export default async function authRoutes(app: FastifyInstance): Promise<void> {
-  app.post('/login', async (request) => {
-    const { email, password } = parse(loginSchema, request.body)
+  app.post(
+    '/login',
+    { config: { rateLimit: { max: 10, timeWindow: '1 minute' } } },
+    async (request) => {
+      const { email, password } = parse(loginSchema, request.body)
 
-    const user = await prisma.user.findUnique({
-      where: { email },
-      include: {
-        tenant: { select: { id: true, name: true, slug: true, isActive: true } },
-      },
-    })
+      const user = await prisma.user.findUnique({
+        where: { email },
+        include: {
+          tenant: { select: { id: true, name: true, slug: true, isActive: true } },
+        },
+      })
 
-    const validPassword = user ? await verifyPassword(password, user.passwordHash) : false
+      const validPassword = user ? await verifyPassword(password, user.passwordHash) : false
 
-    if (!user || !user.tenant.isActive || !validPassword) {
-      throw new AppError(401, 'UNAUTHORIZED', 'Credenciales inválidas')
+      if (!user || (user.tenant !== null && !user.tenant.isActive) || !validPassword) {
+        throw new AppError(401, 'UNAUTHORIZED', 'Credenciales inválidas')
+      }
+
+      const token = signToken({
+        userId: user.id,
+        tenantId: user.tenantId,
+        role: user.role,
+        email: user.email,
+      })
+
+      return {
+        data: {
+          token,
+          user: { id: user.id, email: user.email, role: user.role },
+          tenant: user.tenant
+            ? { id: user.tenant.id, name: user.tenant.name, slug: user.tenant.slug }
+            : null,
+        },
+      }
     }
-
-    const token = signToken({
-      userId: user.id,
-      tenantId: user.tenantId,
-      role: user.role,
-      email: user.email,
-    })
-
-    return {
-      data: {
-        token,
-        user: { id: user.id, email: user.email, role: user.role },
-        tenant: { id: user.tenant.id, name: user.tenant.name, slug: user.tenant.slug },
-      },
-    }
-  })
+  )
 
   app.get('/me', { preHandler: [app.authenticate] }, async (request) => {
     const user = await request.db.user.findFirst({

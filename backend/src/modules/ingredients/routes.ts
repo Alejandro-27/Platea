@@ -35,6 +35,7 @@ export default async function ingredientsRoutes(app: FastifyInstance): Promise<v
   const adminOnly = { preHandler: [app.authenticate, requireRole('ADMIN')] }
 
   app.get('/', { preHandler: [app.authenticate] }, async (request) => {
+    requireTenant(request)
     const query = parse(listQuerySchema, request.query)
     const where = query.search
       ? { name: { contains: query.search, mode: 'insensitive' as const } }

@@ -13,6 +13,7 @@ datasource db {
 }
 
 enum UserRole {
+  SUPER_ADMIN // gestiona tenants; no pertenece a ninguno
   ADMIN
   STAFF // mesero
   KITCHEN // cocina (KDS)
@@ -62,8 +63,8 @@ model User {
   email        String   @unique
   passwordHash String
   role         UserRole @default(STAFF)
-  tenantId     String
-  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenantId     String?
+  tenant       Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   createdAt    DateTime @default(now())
 
   @@index([tenantId])

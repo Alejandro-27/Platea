@@ -27,9 +27,13 @@ export default fp(
         if (typeof sessionId === 'string' && sessionId.length > 0) {
           const session = await prisma.session.findUnique({
             where: { id: sessionId },
-            select: { tenantId: true, expiresAt: true },
+            select: {
+              tenantId: true,
+              expiresAt: true,
+              tenant: { select: { isActive: true } },
+            },
           })
-          if (session && session.expiresAt > new Date()) {
+          if (session && session.tenant.isActive && session.expiresAt > new Date()) {
             tenantId = session.tenantId
           }
         }
@@ -46,5 +50,5 @@ export default fp(
       request.db = getPrisma(tenantId ?? undefined)
     })
   },
-  { name: 'tenant' },
+  { name: 'tenant' }
 )

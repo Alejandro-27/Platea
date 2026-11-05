@@ -77,7 +77,11 @@ async function assertIngredients(db: PrismaClient, items: RecipeItem[]): Promise
 
   const found = await db.ingredient.findMany({ where: { id: { in: ids } }, select: { id: true } })
   if (found.length !== ids.length) {
-    throw new AppError(422, 'VALIDATION_ERROR', 'Uno o más ingredientes no existen en el restaurante')
+    throw new AppError(
+      422,
+      'VALIDATION_ERROR',
+      'Uno o más ingredientes no existen en el restaurante'
+    )
   }
 }
 
@@ -85,6 +89,7 @@ export default async function dishesRoutes(app: FastifyInstance): Promise<void> 
   const adminOnly = { preHandler: [app.authenticate, requireRole('ADMIN')] }
 
   app.get('/', { preHandler: [app.authenticate] }, async (request) => {
+    requireTenant(request)
     const query = parse(listQuerySchema, request.query)
 
     const where: Prisma.DishWhereInput = {}
@@ -107,6 +112,7 @@ export default async function dishesRoutes(app: FastifyInstance): Promise<void> 
   })
 
   app.get('/:id', { preHandler: [app.authenticate] }, async (request) => {
+    requireTenant(request)
     const { id } = parse(paramsSchema, request.params)
 
     const dish = await request.db.dish.findFirst({ where: { id }, include: dishInclude })

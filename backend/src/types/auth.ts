@@ -5,5 +5,6 @@ export type AuthUser = {
   sub: string
   email?: string
   role: UserRole
-  tenantId: string
+  /** null para SUPER_ADMIN: no pertenece a ningún restaurante. */
+  tenantId: string | null
 }

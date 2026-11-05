@@ -7,6 +7,8 @@ const prisma = new PrismaClient()
 
 const ADMIN_EMAIL = 'admin@platea.local'
 const ADMIN_PASSWORD = 'admin1234'
+const SUPER_ADMIN_EMAIL = 'super@platea.local'
+const SUPER_ADMIN_PASSWORD = 'super1234'
 
 async function main(): Promise<void> {
   const tenant = await prisma.tenant.upsert({
@@ -29,6 +31,17 @@ async function main(): Promise<void> {
       passwordHash,
       role: 'ADMIN',
       tenantId: tenant.id,
+    },
+  })
+
+  await prisma.user.upsert({
+    where: { email: SUPER_ADMIN_EMAIL },
+    update: { role: 'SUPER_ADMIN', tenantId: null },
+    create: {
+      email: SUPER_ADMIN_EMAIL,
+      passwordHash: await hashPassword(SUPER_ADMIN_PASSWORD),
+      role: 'SUPER_ADMIN',
+      tenantId: null,
     },
   })
 
@@ -101,7 +114,9 @@ async function main(): Promise<void> {
     })
   }
 
-  console.log(`Seed OK: ${ADMIN_EMAIL} / ${ADMIN_PASSWORD} (tenant ${tenant.slug})`)
+  console.log(`Seed OK:`)
+  console.log(`  Admin tenant: ${ADMIN_EMAIL} / ${ADMIN_PASSWORD} (tenant ${tenant.slug})`)
+  console.log(`  Super Admin:  ${SUPER_ADMIN_EMAIL} / ${SUPER_ADMIN_PASSWORD}`)
 }
 
 main()

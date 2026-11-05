@@ -18,14 +18,14 @@ const verify = createVerifier({
 
 const payloadSchema = z.object({
   sub: z.string().min(1),
-  tenantId: z.string().min(1),
-  role: z.enum(['ADMIN', 'STAFF', 'KITCHEN']),
+  tenantId: z.string().min(1).nullable(),
+  role: z.enum(['SUPER_ADMIN', 'ADMIN', 'STAFF', 'KITCHEN']),
   email: z.string().min(1).optional(),
 })
 
 export type SignTokenInput = {
   userId: string
-  tenantId: string
+  tenantId: string | null
   role: AuthUser['role']
   email?: string
 }

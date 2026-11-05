@@ -29,6 +29,7 @@ export default async function tablesRoutes(app: FastifyInstance): Promise<void> 
   const adminOnly = { preHandler: [app.authenticate, requireRole('ADMIN')] }
 
   app.get('/', { preHandler: [app.authenticate] }, async (request) => {
+    requireTenant(request)
     const query = parse(listQuerySchema, request.query)
     const where = query.isActive ? { isActive: query.isActive === 'true' } : {}
 

@@ -23,6 +23,7 @@ export default async function staffOrderRoutes(app: FastifyInstance): Promise<vo
   const staffOnly = { preHandler: [app.authenticate] }
 
   app.get('/', staffOnly, async (request) => {
+    requireTenant(request)
     const query = parse(listQuerySchema, request.query)
     const where = query.status ? { status: query.status } : {}
 
@@ -68,7 +69,7 @@ export default async function staffOrderRoutes(app: FastifyInstance): Promise<vo
       throw new AppError(
         409,
         'INVALID_STATUS_TRANSITION',
-        `No se puede pasar de ${order.status} a ${body.status}`,
+        `No se puede pasar de ${order.status} a ${body.status}`
       )
     }
 
@@ -140,7 +141,7 @@ export default async function staffOrderRoutes(app: FastifyInstance): Promise<vo
       throw new AppError(
         409,
         'INVALID_STATUS_TRANSITION',
-        `No se puede pasar de ${item.itemStatus} a ${body.status}`,
+        `No se puede pasar de ${item.itemStatus} a ${body.status}`
       )
     }
 
