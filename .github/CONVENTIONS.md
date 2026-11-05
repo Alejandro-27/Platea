@@ -50,9 +50,8 @@ feature/* ──PR──► develop ──PR──► main
 ## Code Style
 
 - **TypeScript estricto**; no usar `any` sin justificación.
-- **Prettier**: 2 espacios, comillas simples, **sin punto y coma**, ancho 100, trailing commas `es5`.
-  - El backend actual todavía usa punto y coma; se reformateará al configurar Prettier (pendiente).
-- **ESLint**: reglas recomendadas + seguridad; se configurará junto con Prettier.
+- **Prettier**: 2 espacios, comillas simples, **sin punto y coma**, ancho 100, trailing commas `es5`. Configurado en `backend/.prettierrc.json`; ejecutar `npm run format`.
+- **ESLint**: recomendado de ESLint + TypeScript + Prettier. Configurado en `backend/eslint.config.mjs`; ejecutar `npm run lint`.
 - Preferir `const`, funciones puras y nombres explícitos.
 - No dejar `console.log` en código de producción; usar el logger de Fastify.
 - Evitar comentarios obvios; documentar decisiones no evidentes.

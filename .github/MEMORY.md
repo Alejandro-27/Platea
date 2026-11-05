@@ -43,9 +43,11 @@ Módulos del MVP:
 - Contraseñas con `scrypt` de `node:crypto` (sin bcrypt/argon2)
 - Socket.io
 - `@fastify/helmet` para cabeceras de seguridad
+- `@fastify/rate-limit` para límites por IP
 - `@fastify/multipart` para subida de archivos (no se usa Multer en este backend)
 - Cloudinary
 - `dotenv`
+- ESLint + Prettier para lint y formato
 
 ### Frontend (Fase 2)
 - React 18 + TypeScript + Vite
@@ -70,7 +72,7 @@ Módulos del MVP:
 | Entidad | Rol | Campos clave |
 |---|---|---|
 | `Tenant` | Restaurante | `slug`, `name`, `logoUrl`, colores, `isActive`, `subscriptionPlan` |
-| `User` | Staff del tenant | `email`, `passwordHash`, `role` (`ADMIN`, `STAFF`, `KITCHEN`), `tenantId` |
+| `User` | Staff del tenant o Super Admin | `email`, `passwordHash`, `role` (`SUPER_ADMIN`, `ADMIN`, `STAFF`, `KITCHEN`), `tenantId` (nullable; `null` solo para `SUPER_ADMIN`) |
 | `Table` | Mesa física | `number`, `qrCode` único, `isActive`, `tenantId` |
 | `Session` | Comensal anónimo | `tenantId`, `tableId` **obligatorio**, `expiresAt`, `lastActiveAt` |
 | `Category` | Categoría del menú | `name`, `slug`, `sortOrder`, `isActive`, `tenantId` |
@@ -124,16 +126,16 @@ Módulos del MVP:
 
 - Repositorio: `git@github.com:Alejandro-27/Platea.git`, rama de trabajo `develop`.
 - Backend con Fastify 5, Prisma 6 y TypeScript 5.9.
-- Schema completo + migración inicial aplicada (`prisma/migrations/20261027210715_init`).
+- Schema completo con dos migraciones aplicadas: `20261027210715_init` y `20261105171625_super_admin`.
 - Base de datos local con Docker (`platea-db`, PostgreSQL 16).
-- Plugins: CORS, Helmet, JWT, tenant, Socket.io.
+- Plugins: CORS, Helmet, rate limit, JWT, tenant, Socket.io.
 - Aislamiento multi-tenant con `getPrisma(tenantId)` y self-check.
 - Autenticación staff con `scrypt` y JWT de 7 días.
-- Módulos implementados: auth, users, categories, dishes (con receta), ingredients, tables (+ QR), sessions anónimas, menú público, orders (estados + descuento de stock), reviews y upload a Cloudinary.
+- Módulos implementados: auth, users, categories, dishes (con receta), ingredients, tables (+ QR), sessions anónimas, menú público, orders (estados + descuento de stock), reviews, upload a Cloudinary y tenants (Super Admin).
 - `buildApp()` exportado para tests y `start()` para ejecución.
 - Manejo centralizado de errores con formato `{ error: { code, message, details } }`.
-- Seed idempotente (`admin@platea.local` / `admin1234`) con tenant demo, mesas, categoría, platos e ingrediente.
-- **CRUD de tenants (Super Admin) pendiente.**
+- Seed idempotente con tenant demo, mesas, categoría, platos e ingrediente. Credenciales: `admin@platea.local` / `admin1234` y Super Admin `super@platea.local` / `super1234`.
+- Eventos Socket.io verificados con un cliente real (`order:new`, `order:updated`) y rooms aislados por tenant/sesión.
 - **Frontend aún no iniciado (Fase 2).**
 
 ## API implementada (MVP)
@@ -151,20 +153,21 @@ Módulos del MVP:
 | Pedidos comensal | `POST /api/public/orders`, `GET /api/public/orders/:id` |
 | Reviews | `POST /api/public/reviews` |
 | Pedidos staff | `GET /api/orders`, `PATCH /api/orders/:id/status`, `PATCH /api/orders/:id/items/:itemId/status` |
+| Tenants (Super Admin) | `GET/POST /api/tenants`, `GET/PATCH/DELETE /api/tenants/:id` |
 
 Reglas de seguridad de la API:
 
 - Escrituras de catálogo y usuarios: `ADMIN`.
-- Lecturas de catálogo y pedidos: cualquier staff autenticado.
+- Lecturas de catálogo y pedidos: cualquier staff autenticado con tenant.
 - Upload: `ADMIN`.
+- Super Admin: solo `/api/tenants`; las rutas de tenant lo rechazan (401) y no ve datos de ningún restaurante.
 - Rutas públicas exigen `x-session-id` vigente salvo menú y creación de sesión.
 - El total del pedido se calcula en el backend con precios de la DB.
+- Rate limit por IP: 300/min global, 10/min en login, 60/min en sesiones y pedidos, 30/min en reviews, 20/min en upload.
 
 ## Pendientes conocidos
 
-- Definir el diseño de **Super Admin** (el schema actual no tiene rol `SUPER_ADMIN` ni `tenantId` opcional).
 - Decidir si una cancelación posterior a `PREPARING` repone stock.
-- Configurar ESLint + Prettier y reformatear el backend (el código actual usa punto y coma).
-- Añadir rate limiting antes de producción (helmet ya está).
-- Valorar refresh tokens; hoy el JWT dura 7 días y no se renueva.
+- **Refresh tokens**: no se implementan en el MVP. El JWT dura 7 días; cuando exista el frontend se revisará con cookie `httpOnly` y revocación. Desactivar un tenant bloquea nuevos logins y sesiones, pero un token de staff ya emitido sigue vigente hasta expirar.
 - Frontend completo y despliegue.
+- `npm audit`: 0 vulnerabilidades en runtime; quedan 10 moderadas en tooling de ESLint (`minimatch`), sin impacto en producción. Se fijó `deepmerge-ts` 8.0.2 vía `overrides` para cerrar las 3 altas de Prisma sin migrar a v7.

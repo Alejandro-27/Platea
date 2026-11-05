@@ -68,13 +68,15 @@ Si una petición contradice estos documentos, **detente y pregunta** antes de ca
 ```bash
 npm run dev                 # ts-node-dev, recarga en caliente
 npm test                    # self-checks: aislamiento, contraseñas y estados
+npm run lint                # ESLint
+npm run format              # Prettier
 npx tsc --noEmit            # typecheck
 npm run build               # compilar a dist/
 npm start                   # ejecutar build
 npx prisma generate         # regenerar cliente
 npx prisma migrate dev --name <nombre>
 npx prisma migrate deploy
-npm run prisma:seed         # datos demo (admin@platea.local / admin1234)
+npm run prisma:seed         # demo: admin@platea.local/admin1234 y super@platea.local/super1234
 npx prisma studio
 ```
 
@@ -92,7 +94,8 @@ docker compose down
 - TypeScript está fijado en **5.9**; no actualizar a 7 mientras se use `ts-node`.
 - Prisma está fijado en **6.19**; la v8 está en RC.
 - El runner de desarrollo es `ts-node-dev`; el de tests, `ts-node`.
-- ESLint y Prettier aún no están configurados; se añadirán después.
+- ESLint (flat config) y Prettier están configurados; `npm run lint` y `npm run format`.
+- Rate limiting con `@fastify/rate-limit`; `trustProxy` se activa en producción.
 - El frontend todavía no existe (Fase 2).
 
 ## Definición de terminado

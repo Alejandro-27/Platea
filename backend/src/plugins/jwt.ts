@@ -1,6 +1,7 @@
 import fp from 'fastify-plugin'
 import fastifyJwt from '@fastify/jwt'
 import { env } from '../config/env'
+import { AppError } from '../lib/errors'
 
 export default fp(
   async (app) => {
@@ -8,13 +9,13 @@ export default fp(
 
     // Prehandler para rutas privadas: valida el Bearer token y deja
     // request.user con { sub, email, role, tenantId }.
-    app.decorate('authenticate', async function (request, reply) {
+    app.decorate('authenticate', async function (request) {
       try {
         await request.jwtVerify()
       } catch {
-        await reply.code(401).send({ error: 'No autorizado' })
+        throw new AppError(401, 'UNAUTHORIZED', 'No autenticado')
       }
     })
   },
-  { name: 'jwt' },
+  { name: 'jwt' }
 )

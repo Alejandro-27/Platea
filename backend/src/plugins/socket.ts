@@ -20,54 +20,63 @@ export default fp(
       cors: { origin: env.FRONTEND_URL, credentials: true },
     })
 
-    io.on('connection', async (socket) => {
-      const auth = (socket.handshake.auth ?? {}) as { token?: unknown; sessionId?: unknown }
+    io.on('connection', (socket) => {
       let tenantId: string | null = null
       let sessionId: string | null = null
       let tableId: string | null = null
       let isStaff = false
 
-      if (typeof auth.token === 'string') {
-        try {
-          const payload = app.jwt.verify<AuthUser>(auth.token)
-          tenantId = payload.tenantId
-          isStaff = true
-        } catch {
-          socket.disconnect(true)
-          return
-        }
-      } else if (typeof auth.sessionId === 'string') {
-        const session = await prisma.session.findUnique({
-          where: { id: auth.sessionId },
-          select: { tenantId: true, tableId: true, expiresAt: true },
-        })
-        if (!session || session.expiresAt < new Date()) {
-          socket.disconnect(true)
-          return
-        }
-        tenantId = session.tenantId
-        sessionId = auth.sessionId
-        tableId = session.tableId
-      } else {
-        socket.disconnect(true)
-        return
-      }
+      // Los handlers se registran antes de resolver la sesión para no perder
+      // los eventos que el cliente emite nada más conectar.
+      const authReady = (async () => {
+        const auth = (socket.handshake.auth ?? {}) as { token?: unknown; sessionId?: unknown }
 
-      socket.on('room:join', (room: unknown) => {
+        if (typeof auth.token === 'string') {
+          try {
+            const payload = app.jwt.verify<AuthUser>(auth.token)
+            tenantId = payload.tenantId
+            isStaff = true
+          } catch {
+            socket.disconnect(true)
+          }
+        } else if (typeof auth.sessionId === 'string') {
+          const session = await prisma.session.findUnique({
+            where: { id: auth.sessionId },
+            select: {
+              tenantId: true,
+              tableId: true,
+              expiresAt: true,
+              tenant: { select: { isActive: true } },
+            },
+          })
+          if (!session || !session.tenant.isActive || session.expiresAt < new Date()) {
+            socket.disconnect(true)
+            return
+          }
+          tenantId = session.tenantId
+          sessionId = auth.sessionId
+          tableId = session.tableId
+        } else {
+          socket.disconnect(true)
+        }
+      })()
+
+      socket.on('room:join', async (room: unknown) => {
+        await authReady
         if (typeof room !== 'string') return
         const [scope, id] = room.split(':')
         if (!id) return
 
         if (isStaff && STAFF_ROOMS.has(scope) && id === tenantId) {
-          socket.join(room)
+          await socket.join(room)
         } else if (!isStaff && CUSTOMER_ROOMS.has(scope)) {
-          if (scope === 'session' && id === sessionId) socket.join(room)
-          if (scope === 'table' && id === tableId) socket.join(room)
+          if (scope === 'session' && id === sessionId) await socket.join(room)
+          if (scope === 'table' && id === tableId) await socket.join(room)
         }
       })
 
       socket.on('room:leave', (room: unknown) => {
-        if (typeof room === 'string') socket.leave(room)
+        if (typeof room === 'string') void socket.leave(room)
       })
     })
 
@@ -76,5 +85,5 @@ export default fp(
       await io.close()
     })
   },
-  { name: 'socket' },
+  { name: 'socket' }
 )

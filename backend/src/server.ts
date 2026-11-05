@@ -8,6 +8,7 @@ import { AppError } from './lib/errors'
 import { prisma } from './lib/prisma'
 import corsPlugin from './plugins/cors'
 import jwtPlugin from './plugins/jwt'
+import rateLimitPlugin from './plugins/rate-limit'
 import socketPlugin from './plugins/socket'
 import tenantPlugin from './plugins/tenant'
 import authModule from './modules/auth'
@@ -22,31 +23,11 @@ import ordersModule from './modules/orders'
 import reviewsModule from './modules/reviews'
 import uploadModule from './modules/upload'
 
-export async function buildApp(): Promise<FastifyInstance> {
-  const app = Fastify({
-    logger: { level: env.NODE_ENV === 'production' ? 'info' : 'debug' },
-  })
-
-  await app.register(helmet)
-  await app.register(corsPlugin)
-  await app.register(jwtPlugin)
-  await app.register(socketPlugin)
-  await app.register(tenantPlugin)
-
-  await app.register(authModule)
-  await app.register(usersModule)
-  await app.register(categoriesModule)
-  await app.register(dishesModule)
-  await app.register(ingredientsModule)
-  await app.register(tablesModule)
-  await app.register(sessionsModule)
-  await app.register(tenantsModule)
-  await app.register(ordersModule)
-  await app.register(reviewsModule)
-  await app.register(uploadModule)
-
-  app.get('/health', async () => ({ status: 'ok', uptime: process.uptime() }))
-
+/**
+ * Debe registrarse antes que los módulos: Fastify resuelve el manejador de
+ * errores al registrar cada ruta, no al lanzar el error.
+ */
+function registerErrorHandlers(app: FastifyInstance): void {
   app.setNotFoundHandler((_request, reply) => {
     reply.code(404).send({
       error: { code: 'NOT_FOUND', message: 'Ruta no encontrada', details: [] },
@@ -97,12 +78,20 @@ export async function buildApp(): Promise<FastifyInstance> {
     const fastifyError = error as { statusCode?: number; code?: string; message?: string }
     if (fastifyError.statusCode === 413 || fastifyError.code === 'FST_REQ_FILE_TOO_LARGE') {
       reply.code(413).send({
-        error: { code: 'PAYLOAD_TOO_LARGE', message: 'El archivo supera el tamaño permitido', details: [] },
+        error: {
+          code: 'PAYLOAD_TOO_LARGE',
+          message: 'El archivo supera el tamaño permitido',
+          details: [],
+        },
       })
       return
     }
 
-    if (fastifyError.statusCode && fastifyError.statusCode >= 400 && fastifyError.statusCode < 500) {
+    if (
+      fastifyError.statusCode &&
+      fastifyError.statusCode >= 400 &&
+      fastifyError.statusCode < 500
+    ) {
       reply.code(fastifyError.statusCode).send({
         error: {
           code: fastifyError.code ?? 'BAD_REQUEST',
@@ -118,6 +107,37 @@ export async function buildApp(): Promise<FastifyInstance> {
       error: { code: 'INTERNAL_ERROR', message: 'Error interno', details: [] },
     })
   })
+}
+
+export async function buildApp(): Promise<FastifyInstance> {
+  const app = Fastify({
+    logger: { level: env.NODE_ENV === 'production' ? 'info' : 'debug' },
+    // Necesario para que el rate limit vea la IP real detrás de Render/Railway.
+    trustProxy: env.NODE_ENV === 'production',
+  })
+
+  await app.register(helmet)
+  await app.register(corsPlugin)
+  await app.register(rateLimitPlugin)
+  await app.register(jwtPlugin)
+  await app.register(socketPlugin)
+  await app.register(tenantPlugin)
+
+  registerErrorHandlers(app)
+
+  await app.register(authModule)
+  await app.register(usersModule)
+  await app.register(categoriesModule)
+  await app.register(dishesModule)
+  await app.register(ingredientsModule)
+  await app.register(tablesModule)
+  await app.register(sessionsModule)
+  await app.register(tenantsModule)
+  await app.register(ordersModule)
+  await app.register(reviewsModule)
+  await app.register(uploadModule)
+
+  app.get('/health', async () => ({ status: 'ok', uptime: process.uptime() }))
 
   app.addHook('onClose', async () => {
     await prisma.$disconnect()

@@ -89,14 +89,14 @@ npm run prisma:seed
 npm run dev
 ```
 
-`npm install` ejecuta `prisma generate` (postinstall). `migrate deploy` aplica las migraciones existentes sin crear nuevas. El seed crea el restaurante de demostración y un usuario ADMIN:
+`npm install` ejecuta `prisma generate` (postinstall). `migrate deploy` aplica las migraciones existentes sin crear nuevas. El seed crea el restaurante de demostración y dos cuentas:
 
 ```text
-Email:    admin@platea.local
-Password: admin1234
+Admin tenant: admin@platea.local / admin1234
+Super Admin:  super@platea.local / super1234
 ```
 
-> Cambia esa contraseña antes de cualquier entorno compartido. El seed es idempotente.
+> Cambia esas contraseñas antes de cualquier entorno compartido. El seed es idempotente.
 
 La API queda disponible en:
 
@@ -182,6 +182,8 @@ En producción, `DATABASE_URL` apunta a Supabase/Neon y normalmente incluye `?ss
 | `npm run build` | Compila TypeScript a `dist/` |
 | `npm start` | Ejecuta el build de producción |
 | `npm test` | Self-checks de aislamiento, contraseñas y transiciones de estado |
+| `npm run lint` | ESLint |
+| `npm run format` | Formatea con Prettier |
 | `npm run prisma:generate` | Genera el cliente Prisma |
 | `npm run prisma:migrate` | Crea/aplica una migración en desarrollo |
 | `npm run prisma:seed` | Crea datos de demostración (idempotente) |
@@ -243,15 +245,15 @@ Se usan **Conventional Commits** (`feat`, `fix`, `docs`, `style`, `refactor`, `p
 - [x] Estructura base del backend
 - [x] README y archivos de contexto
 
-### Fase 1 — Backend Core (en progreso)
+### Fase 1 — Backend Core (completada)
 
-- [x] Schema de Prisma completo
-- [x] Migración inicial
+- [x] Schema de Prisma completo + migraciones
 - [x] Auth JWT (login de staff y `/me`; usuarios se crean desde el admin)
-- [ ] CRUD Tenants (Super Admin) — pendiente de definir el rol
+- [x] CRUD Tenants (Super Admin)
 - [x] CRUD Users, Tables + QR, Categories, Dishes + upload, Ingredients
 - [x] Sesiones anónimas, Orders, Reviews
 - [x] Eventos Socket.io (`order:new`, `order:updated`) y rooms autenticados
+- [x] Helmet, rate limiting, ESLint y Prettier
 
 ### Fase 2 — Frontend Core (pendiente)
 

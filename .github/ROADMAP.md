@@ -9,12 +9,12 @@
 - [ ] Estructura de carpetas del frontend (Fase 2)
 - [x] README.md y archivos de contexto (`.github/`)
 
-## Fase 1 — Backend Core (MVP) — en progreso
+## Fase 1 — Backend Core (MVP) — completada
 
 - [x] Schema de Prisma completo
-- [x] Migración inicial
+- [x] Migraciones (inicial + Super Admin)
 - [x] Auth JWT (login de staff y `/me`; alta de usuarios desde el admin)
-- [ ] CRUD Tenants (Super Admin) — pendiente de definir el rol `SUPER_ADMIN`
+- [x] CRUD Tenants (Super Admin) con rol `SUPER_ADMIN` y `tenantId` nullable
 - [x] CRUD Users (Admin restaurante)
 - [x] CRUD Tables + generación de QR
 - [x] CRUD Categories
@@ -23,10 +23,11 @@
 - [x] Sesiones anónimas para comensales
 - [x] Orders (creación, estados, descuento de stock en `PREPARING`)
 - [x] Reviews (calificaciones)
-- [x] Integración completa de Socket.io (rooms y eventos)
+- [x] Integración completa de Socket.io (rooms y eventos verificados con cliente real)
 - [x] Manejo centralizado de errores y respuestas `{ data }` / `{ error }`
 - [x] Seed de datos de demostración
-- [x] Helmet
+- [x] Helmet + rate limiting
+- [x] ESLint + Prettier
 
 ## Fase 2 — Frontend Core (MVP) — pendiente
 
@@ -50,7 +51,7 @@
 - [ ] Deploy frontend (Vercel/Cloudflare Pages)
 - [ ] Deploy DB (Supabase/Neon)
 - [ ] Configuración de Cloudinary en producción
-- [ ] Rate limiting y hardening (helmet ya implementado)
+- [x] Rate limiting y hardening (helmet + `@fastify/rate-limit`)
 - [ ] Smoke tests en producción
 
 ## Fase 4 — v1.5 (Post-MVP) — pendiente
@@ -65,7 +66,8 @@
 ## Notas de alcance
 
 - **TanStack Query**: no forma parte del MVP; evaluar en v1.5.
-- **Super Admin**: el schema actual no tiene `SUPER_ADMIN`; definir el diseño antes de implementar el CRUD de tenants.
+- **Super Admin**: rol `SUPER_ADMIN` con `tenantId` nullable; el dashboard visual sigue en Fase 4.
+- **Refresh tokens**: fuera del MVP; JWT de 7 días. Revisar con el frontend (cookie `httpOnly` + revocación).
 - **Inventario**: el descuento ocurre al transicionar a `PREPARING`; definir si una cancelación posterior repone stock.
 - **Impresión**: en v1 solo KDS; no hay impresión automática.
 - **Pagos y delivery**: fuera del MVP; pertenecen a v1.5.

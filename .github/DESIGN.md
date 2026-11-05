@@ -35,8 +35,8 @@
 
 Cada request pasa por `src/plugins/tenant.ts`:
 
-1. **JWT de staff** (`Authorization: Bearer`): `tenantId` sale del token. Si el token es inválido se responde 401; no se degrada a anónimo.
-2. **Sesión de comensal** (`x-session-id`): se busca la `Session` vigente y se toma su `tenantId`.
+1. **JWT de staff** (`Authorization: Bearer`): `tenantId` sale del token. Si el token es inválido se responde 401; no se degrada a anónimo. El `SUPER_ADMIN` lleva `tenantId: null` y opera con el cliente base solo en `/api/tenants`.
+2. **Sesión de comensal** (`x-session-id`): se busca la `Session` vigente, con su tenant activo, y se toma su `tenantId`.
 3. **`:tenantId` de la URL**: endpoints públicos de menú.
 
 El plugin deja:
@@ -79,12 +79,16 @@ Request → CORS → JWT (si hay Bearer) → tenant plugin → hook de ruta
        → respuesta { data } / { error }
 ```
 
-### Super Admin (pendiente)
+### Super Admin
 
-El schema actual no contempla `SUPER_ADMIN`: `User.tenantId` es obligatorio. Antes de implementar el CRUD de tenants hay que decidir entre:
+Se usa un rol `SUPER_ADMIN` en `User` con `tenantId` nullable:
 
-- añadir rol `SUPER_ADMIN` y permitir `tenantId` nullable; o
-- una entidad/tabla separada de administradores del SaaS.
+- El Super Admin no pertenece a ningún restaurante (`tenantId = null`) y su JWT lo refleja.
+- `/api/tenants` exige `SUPER_ADMIN` y usa el cliente base de Prisma (es la única excepción junto al login/menú/health).
+- Las rutas de tenant llaman a `requireTenant()`; un token sin tenant recibe 401 aunque el JWT sea válido.
+- `POST /api/tenants` puede crear el primer usuario `ADMIN` del restaurante en la misma transacción.
+- `DELETE /api/tenants/:id` es borrado lógico (`isActive: false`): bloquea login, menú público y sesiones nuevas o vigentes, pero conserva el historial.
+- Un token de staff ya emitido sigue siendo válido hasta su expiración (no hay revocación en el MVP).
 
 ## 3. Patrones de diseño
 
@@ -147,6 +151,7 @@ Formato implementado:
 - Rol insuficiente → 403 `FORBIDDEN`.
 - Recurso inexistente o de otro tenant → 404 `NOT_FOUND`.
 - Conflicto de unicidad → 409 `CONFLICT`.
+- Demasiadas peticiones → 429 `RATE_LIMIT`.
 - Error inesperado → 500 `INTERNAL_ERROR` (sin filtrar detalles internos).
 
 ### Tiempo real
@@ -263,7 +268,7 @@ frontend/
 | Ingredientes | `GET/POST /api/ingredients`, `PATCH/DELETE /api/ingredients/:id` |
 | Pedidos staff | `GET /api/orders`, `PATCH /api/orders/:id/items/:itemId/status`, `PATCH /api/orders/:id/status` |
 | Usuarios | `GET/POST /api/users`, `PATCH/DELETE /api/users/:id` |
-| Tenants (Super Admin) | Pendiente de definir el rol `SUPER_ADMIN` |
+| Tenants (Super Admin) | `GET/POST /api/tenants`, `GET/PATCH/DELETE /api/tenants/:id` |
 
 > Los `DELETE` de platos, categorías y mesas son borrados lógicos (`isAvailable`/`isActive`) para conservar historial.
 
@@ -285,8 +290,8 @@ frontend/
 - `prisma migrate dev --name <nombre>` en desarrollo (crea migración y aplica).
 - `prisma migrate deploy` en CI/producción (solo aplica).
 - El schema es la fuente de verdad; no editar tablas manualmente.
-- La migración inicial ya está versionada en `prisma/migrations/`.
-- `npm run prisma:seed` crea datos de demostración idempotentes (`admin@platea.local` / `admin1234`).
+- Las migraciones están versionadas en `prisma/migrations/`.
+- `npm run prisma:seed` crea datos de demostración idempotentes: `admin@platea.local` / `admin1234` y Super Admin `super@platea.local` / `super1234`.
 
 ### Reglas de integridad
 
@@ -312,10 +317,11 @@ frontend/
 ## 8. Seguridad
 
 - HTTPS/WSS obligatorio en producción; CORS restringido a `FRONTEND_URL`.
-- JWT firmado con `JWT_SECRET` de 32+ caracteres; expiración de 7 días (sin refresh por ahora).
+- JWT firmado con `JWT_SECRET` de 32+ caracteres; expiración de 7 días. Sin refresh tokens en el MVP: cuando exista el frontend se valorará cookie `httpOnly` + revocación.
 - Contraseñas con `scrypt` de `node:crypto` (sal aleatoria por usuario); nunca texto plano.
 - Validación Zod en todos los inputs; límites de tamaño en uploads (5 MB, JPEG/PNG/WebP).
 - Aislamiento por tenant en la capa Prisma + verificación de pertenencia en servicios.
 - No exponer trazas internas ni datos de otros tenants en errores.
-- Helmet implementado; rate limiting pendiente antes de producción.
+- Helmet + rate limit por IP: 300/min global, 10/min en login, 60/min en sesiones y pedidos, 30/min en reviews y 20/min en upload.
+- `trustProxy` activo en producción para leer la IP real detrás de Render/Railway.
 - Secretos solo en variables de entorno; `.env` fuera de Git.
