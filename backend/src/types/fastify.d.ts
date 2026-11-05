@@ -1,5 +1,4 @@
 import type { PrismaClient } from '@prisma/client'
-import type { FastifyReply, FastifyRequest } from 'fastify'
 import type { Server } from 'socket.io'
 import type { AuthUser } from './auth'
 

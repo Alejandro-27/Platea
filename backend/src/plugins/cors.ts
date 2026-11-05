@@ -9,5 +9,5 @@ export default fp(
       credentials: true,
     })
   },
-  { name: 'cors' },
+  { name: 'cors' }
 )

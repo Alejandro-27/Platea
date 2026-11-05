@@ -48,7 +48,7 @@ export function applyTenantScope(
   model: string,
   operation: string,
   args: PrismaArgs,
-  tenantId: string,
+  tenantId: string
 ): PrismaArgs {
   if (!TENANT_MODELS.has(model)) return args
 

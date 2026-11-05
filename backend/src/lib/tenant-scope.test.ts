@@ -16,20 +16,28 @@ assert.deepEqual(applyTenantScope('Order', 'count', {}, TENANT), {
 // Creación: fuerza el tenant y descarta el tenantId enviado por el cliente.
 assert.deepEqual(
   applyTenantScope('Dish', 'create', { data: { name: 'Burger', tenantId: 'ajeno' } }, TENANT),
-  { data: { name: 'Burger', tenantId: TENANT } },
+  { data: { name: 'Burger', tenantId: TENANT } }
 )
 
 // createMany: aplica a cada fila.
 assert.deepEqual(
   applyTenantScope('Table', 'createMany', { data: [{ number: 1 }, { number: 2 }] }, TENANT),
-  { data: [{ number: 1, tenantId: TENANT }, { number: 2, tenantId: TENANT }] },
+  {
+    data: [
+      { number: 1, tenantId: TENANT },
+      { number: 2, tenantId: TENANT },
+    ],
+  }
 )
 
 // Update por id: el where lleva id + tenantId.
-assert.deepEqual(applyTenantScope('Dish', 'update', { where: { id: 'd1' }, data: { price: 10 } }, TENANT), {
-  where: { id: 'd1', tenantId: TENANT },
-  data: { price: 10 },
-})
+assert.deepEqual(
+  applyTenantScope('Dish', 'update', { where: { id: 'd1' }, data: { price: 10 } }, TENANT),
+  {
+    where: { id: 'd1', tenantId: TENANT },
+    data: { price: 10 },
+  }
+)
 
 // Tenant es la entidad raíz: no se filtra.
 const tenantArgs = { where: { slug: 'demo' } }

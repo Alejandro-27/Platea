@@ -17,7 +17,7 @@ export async function deductIngredients(
   item: {
     quantity: number
     dish: { dishIngredients: Array<{ ingredientId: string; quantity: Prisma.Decimal }> }
-  },
+  }
 ): Promise<void> {
   for (const ingredient of item.dish.dishIngredients) {
     const amount = new Prisma.Decimal(ingredient.quantity).mul(item.quantity)

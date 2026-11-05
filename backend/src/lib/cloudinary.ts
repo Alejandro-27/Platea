@@ -23,7 +23,7 @@ function assertConfigured(): void {
 export function uploadImage(
   fileBuffer: Buffer,
   folder: string,
-  publicId?: string,
+  publicId?: string
 ): Promise<string> {
   assertConfigured()
 
@@ -40,7 +40,7 @@ export function uploadImage(
           return
         }
         resolve(result.secure_url)
-      },
+      }
     )
 
     stream.end(fileBuffer)
