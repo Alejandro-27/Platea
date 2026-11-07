@@ -19,7 +19,7 @@ Cada restaurante (tenant) gestiona su propia carta, mesas, personal, inventario 
 | **Subida de imágenes** | `@fastify/multipart` + Cloudinary |
 | **Infraestructura gratuita** | Render/Railway (API), Vercel/Cloudflare Pages (web), Supabase/Neon (DB), Cloudinary (imágenes) |
 
-> El frontend aún no está creado. Esta primera etapa desarrolla el backend y la base de datos. La Fase 2 añade la aplicación React.
+> El backend del MVP está completo. La Fase 2 tiene implementadas las vistas del comensal (menú, carrito, pedido y estado en tiempo real) y del personal (login, KDS, mesero y panel admin). Queda la consola visual de Super Admin.
 
 ---
 
@@ -103,17 +103,18 @@ La API queda disponible en:
 - Health check: <http://localhost:3000/health>
 - Socket.io: `ws://localhost:3000`
 
-### 5. Frontend (Fase 2 — pendiente)
+### 5. Frontend (Fase 2 — en curso)
 
-La carpeta `frontend/` todavía no existe. Cuando se cree, la instalación será:
+La vista del comensal ya está implementada. La plantilla `frontend/.env.example` apunta a `http://localhost:3000`:
 
 ```bash
 cd frontend
 npm install
+cp .env.example .env
 npm run dev
 ```
 
-Disponible en <http://localhost:5173> (debe coincidir con `FRONTEND_URL`).
+Disponible en <http://localhost:5173> (debe coincidir con `FRONTEND_URL`). El QR abre `/menu/:tenantId?table=:tableId`; tras enviar el pedido, `/order/:orderId` muestra el estado en tiempo real por Socket.io.
 
 ---
 
@@ -137,7 +138,17 @@ Platea/
 │   ├── prisma.config.ts
 │   ├── package.json
 │   └── tsconfig.json
-├── frontend/                      # Fase 2 (pendiente)
+├── frontend/
+│   ├── src/
+│   │   ├── components/            # UI base, menú y carrito
+│   │   ├── hooks/                 # Sesión anónima del comensal
+│   │   ├── i18n/                  # es.json, en.json
+│   │   ├── lib/                   # API, socket, formato y sesión
+│   │   ├── pages/                 # Menú y estado del pedido
+│   │   └── store/                 # Carrito (Zustand + persist)
+│   ├── index.html
+│   ├── tailwind.config.ts
+│   └── vite.config.ts
 ├── .github/
 │   ├── MEMORY.md                  # Decisiones y contexto acumulado
 │   ├── DESIGN.md                  # Arquitectura y convenciones técnicas
@@ -188,6 +199,16 @@ En producción, `DATABASE_URL` apunta a Supabase/Neon y normalmente incluye `?ss
 | `npm run prisma:migrate` | Crea/aplica una migración en desarrollo |
 | `npm run prisma:seed` | Crea datos de demostración (idempotente) |
 | `npm run prisma:studio` | Abre Prisma Studio |
+
+### Frontend (`cd frontend`)
+
+| Comando | Descripción |
+|---|---|
+| `npm run dev` | Vite en desarrollo (<http://localhost:5173>) |
+| `npm run build` | Typecheck + build de producción |
+| `npm run preview` | Sirve el build de producción |
+| `npm run lint` | ESLint |
+| `npm run format` | Formatea con Prettier |
 
 ### Prisma
 
@@ -255,13 +276,13 @@ Se usan **Conventional Commits** (`feat`, `fix`, `docs`, `style`, `refactor`, `p
 - [x] Eventos Socket.io (`order:new`, `order:updated`) y rooms autenticados
 - [x] Helmet, rate limiting, ESLint y Prettier
 
-### Fase 2 — Frontend Core (pendiente)
+### Fase 2 — Frontend Core (en curso)
 
-- [ ] Vite + React + TypeScript, Tailwind y shadcn/ui
-- [ ] i18n ES/EN
-- [ ] Vista comensal (menú, carrito, estado del pedido)
-- [ ] KDS, panel admin y vista mesero
-- [ ] Integración Socket.io y upload de imágenes
+- [x] Vite + React + TypeScript, Tailwind y componentes base estilo shadcn/ui
+- [x] i18n ES/EN
+- [x] Vista comensal (menú, carrito, estado del pedido)
+- [x] Integración Socket.io en el cliente y persistencia de sesión/carrito
+- [x] KDS, panel admin, vista mesero y upload de imágenes
 
 ### Fase 3 — Testing y deploy (pendiente)
 

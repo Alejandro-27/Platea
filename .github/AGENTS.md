@@ -80,6 +80,16 @@ npm run prisma:seed         # demo: admin@platea.local/admin1234 y super@platea.
 npx prisma studio
 ```
 
+### Frontend (desde `frontend/`)
+
+```bash
+npm run dev                 # Vite en http://localhost:5173
+npm run build               # typecheck + build de producción
+npm run lint                # ESLint
+npm run format              # Prettier
+npm run preview             # sirve el build
+```
+
 ### Base de datos local (desde la raíz)
 
 ```bash
@@ -96,7 +106,8 @@ docker compose down
 - El runner de desarrollo es `ts-node-dev`; el de tests, `ts-node`.
 - ESLint (flat config) y Prettier están configurados; `npm run lint` y `npm run format`.
 - Rate limiting con `@fastify/rate-limit`; `trustProxy` se activa en producción.
-- El frontend todavía no existe (Fase 2).
+- El frontend vive en `frontend/` (React 18 + Vite 6 + Tailwind 3.4); su typecheck y build se ejecutan con `npm run build`.
+- La vista del comensal y las vistas de staff (login, KDS, mesero y panel admin) están implementadas; la consola visual de Super Admin sigue pendiente.
 
 ## Definición de terminado
 

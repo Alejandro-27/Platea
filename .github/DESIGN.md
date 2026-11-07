@@ -113,19 +113,20 @@ modules/dishes/
 
 ```text
 src/
-├── components/ui/        # shadcn/ui
+├── components/ui/        # Button, Dialog, Form, Sheet
 ├── components/menu/      # DishCard, filtros, rating
 ├── components/cart/      # carrito y notas
 ├── components/kds/       # tarjetas de cocina
-├── components/admin/     # formularios y tablas
-├── pages/customer/       # menú, carrito, estado
-├── pages/kitchen/        # KDS
-├── pages/waiter/         # mesero
-├── pages/admin/          # panel
-├── store/                # Zustand: cart, auth, socket
-├── hooks/                # useSocket, useMenu, useOrders
-├── lib/                  # cliente HTTP, socket, i18n, utils
-└── i18n/                 # es.json, en.json
+├── components/admin/     # formulario de platos
+├── components/staff/     # layout del personal
+├── pages/                # comensal (menú, estado, scan)
+├── pages/staff/          # login, KDS, mesero
+├── pages/staff/admin/    # panel del restaurante
+├── store/                # Zustand: cart, auth
+├── hooks/                # useSession, useAsync
+├── lib/                  # cliente HTTP, staff, socket, i18n, utils
+├── i18n/                 # es.json, en.json
+└── types/                # contratos de la API
 ```
 
 - Estado global mínimo: carrito del comensal, auth del staff y conexión Socket.io.
@@ -269,6 +270,7 @@ frontend/
 | Pedidos staff | `GET /api/orders`, `PATCH /api/orders/:id/items/:itemId/status`, `PATCH /api/orders/:id/status` |
 | Usuarios | `GET/POST /api/users`, `PATCH/DELETE /api/users/:id` |
 | Tenants (Super Admin) | `GET/POST /api/tenants`, `GET/PATCH/DELETE /api/tenants/:id` |
+| Ajustes del restaurante | `GET/PATCH /api/tenant` (solo ADMIN) |
 
 > Los `DELETE` de platos, categorías y mesas son borrados lógicos (`isAvailable`/`isActive`) para conservar historial.
 

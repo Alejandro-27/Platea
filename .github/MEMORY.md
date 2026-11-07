@@ -30,6 +30,7 @@ Módulos del MVP:
 8. **Dinero con `Decimal`**: `Decimal(10,2)`. En JSON se convierte a número solo para presentación; no hacer aritmética de dinero en el frontend.
 9. **Respuestas API**: sobre `{ data, meta }` y `{ error: { code, message, details } }` para los módulos nuevos (ver `DESIGN.md`). `/health` es la excepción actual.
 10. **Tiempo real**: Socket.io en una sola instancia (adapter en memoria). Rooms autenticados en el handshake.
+11. **Frontend del comensal**: Vite 6 + React 18.3 + TypeScript 5.9 + Tailwind 3.4 (no v4, para conservar `tailwind.config.ts`), Zustand 5 y react-i18next 15. El carrito se persiste en `localStorage` y se reinicia al cambiar de tenant/mesa. Los importes del carrito se calculan en céntimos solo para mostrarlos; el total real siempre viene del backend. Las variables de marca del tenant se aplican en `:root` para que los portales de Radix hereden el tema.
 
 ## Stack confirmado
 
@@ -50,13 +51,13 @@ Módulos del MVP:
 - ESLint + Prettier para lint y formato
 
 ### Frontend (Fase 2)
-- React 18 + TypeScript + Vite
-- Tailwind CSS + shadcn/ui
-- Zustand para estado global
+- React 18.3 + TypeScript 5.9 + Vite 6
+- Tailwind CSS 3.4 + componentes base estilo shadcn/ui (Radix Dialog para el carrito)
+- Zustand 5 para estado global (carrito persistido)
 - react-i18next (ES/EN)
-- socket.io-client
-- html5-qrcode (generación/lectura de QR en admin)
-- React Router para el enrutamiento
+- socket.io-client 4
+- html5-qrcode (generación/lectura de QR en admin, pendiente)
+- React Router 7 para el enrutamiento
 
 > **TanStack Query no forma parte del MVP.** No añadirla sin aprobación explícita; Zustand + fetch + Socket.io cubren las necesidades actuales. Se evaluará después del MVP.
 
@@ -136,7 +137,16 @@ Módulos del MVP:
 - Manejo centralizado de errores con formato `{ error: { code, message, details } }`.
 - Seed idempotente con tenant demo, mesas, categoría, platos e ingrediente. Credenciales: `admin@platea.local` / `admin1234` y Super Admin `super@platea.local` / `super1234`.
 - Eventos Socket.io verificados con un cliente real (`order:new`, `order:updated`) y rooms aislados por tenant/sesión.
-- **Frontend aún no iniciado (Fase 2).**
+- **Frontend del comensal implementado (Fase 2)**:
+  - `/menu/:tenantId?table=:tableId` crea o reutiliza una sesión anónima en `localStorage`, carga el menú público y permite buscar y filtrar por categoría.
+  - Carrito persistido por tenant/mesa con notas por plato y de pedido; envío a `POST /api/public/orders` y redirección a `/order/:orderId`.
+  - Estado del pedido en tiempo real con Socket.io (`order:updated`), i18n ES/EN y tema con los colores del tenant.
+- **Vistas de staff implementadas (Fase 2)**:
+  - `/login` autentica al personal y guarda el JWT en `localStorage`; las rutas se protegen por rol.
+  - `/kitchen` (KDS): tablero `PENDING / PREPARING / READY` en tiempo real, avance de estado y alerta sonora opcional.
+  - `/waiter`: pedidos agrupados por mesa, con «marcar servido» cuando el pedido está `READY`.
+  - `/admin`: resumen, CRUD de platos con receta y subida de imagen, categorías, mesas + enlace QR, inventario, historial de pedidos, usuarios y ajustes del restaurante.
+  - Pendiente: consola visual de Super Admin y UI de reviews.
 
 ## API implementada (MVP)
 
@@ -154,6 +164,7 @@ Módulos del MVP:
 | Reviews | `POST /api/public/reviews` |
 | Pedidos staff | `GET /api/orders`, `PATCH /api/orders/:id/status`, `PATCH /api/orders/:id/items/:itemId/status` |
 | Tenants (Super Admin) | `GET/POST /api/tenants`, `GET/PATCH/DELETE /api/tenants/:id` |
+| Ajustes del restaurante | `GET/PATCH /api/tenant` (solo ADMIN) |
 
 Reglas de seguridad de la API:
 
@@ -168,5 +179,5 @@ Reglas de seguridad de la API:
 ## Pendientes conocidos
 
 - **Refresh tokens**: no se implementan en el MVP. El JWT dura 7 días; cuando exista el frontend se revisará con cookie `httpOnly` y revocación. Desactivar un tenant bloquea nuevos logins y sesiones, pero un token de staff ya emitido sigue vigente hasta expirar.
-- Frontend completo y despliegue.
+- Frontend: consola visual de Super Admin, UI de reviews y despliegue. La moneda está fijada a EUR (campo `currency` en `Tenant` pendiente).
 - `npm audit`: 0 vulnerabilidades en runtime; quedan 10 moderadas en tooling de ESLint (`minimatch`), sin impacto en producción. Se fijó `deepmerge-ts` 8.0.2 vía `overrides` para cerrar las 3 altas de Prisma sin migrar a v7.

@@ -6,7 +6,7 @@
 - [x] Creación del repositorio y rama `develop`
 - [x] Configuración de Docker (PostgreSQL 16)
 - [x] Estructura de carpetas del backend
-- [ ] Estructura de carpetas del frontend (Fase 2)
+- [x] Estructura de carpetas del frontend (Fase 2)
 - [x] README.md y archivos de contexto (`.github/`)
 
 ## Fase 1 — Backend Core (MVP) — completada
@@ -29,18 +29,18 @@
 - [x] Helmet + rate limiting
 - [x] ESLint + Prettier
 
-## Fase 2 — Frontend Core (MVP) — pendiente
+## Fase 2 — Frontend Core (MVP) — en curso
 
-- [ ] Setup Vite + React 18 + TypeScript
-- [ ] Tailwind CSS + shadcn/ui
-- [ ] i18n ES/EN
-- [ ] Vista Comensal (menú, carrito, estado del pedido)
-- [ ] Vista KDS (cocina en tiempo real)
-- [ ] Vista Admin (dashboard, platos, mesas, inventario)
-- [ ] Vista Mesero (gestión de mesas)
-- [ ] Integración Socket.io en el cliente
-- [ ] Upload de imágenes desde el admin
-- [ ] Persistencia de `sessionId`/`tableId` para recargas
+- [x] Setup Vite + React 18 + TypeScript
+- [x] Tailwind CSS + componentes base estilo shadcn/ui (Button, Sheet)
+- [x] i18n ES/EN
+- [x] Vista Comensal (menú, carrito, estado del pedido)
+- [x] Vista KDS (cocina en tiempo real)
+- [x] Vista Admin (dashboard, platos, mesas, inventario)
+- [x] Vista Mesero (gestión de mesas)
+- [x] Integración Socket.io en el cliente (comensal)
+- [x] Upload de imágenes desde el admin
+- [x] Persistencia de `sessionId`/`tableId` para recargas
 
 ## Fase 3 — Testing y Deploy — pendiente
 
