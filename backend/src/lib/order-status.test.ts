@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { canTransitionItem, canTransitionOrder } from './order-status'
+import { canReplenishStock, canTransitionItem, canTransitionOrder } from './order-status'
 
 assert.equal(canTransitionOrder('PENDING', 'PREPARING'), true)
 assert.equal(canTransitionOrder('PREPARING', 'READY'), true)
@@ -14,5 +14,10 @@ assert.equal(canTransitionItem('PREPARING', 'READY'), true)
 assert.equal(canTransitionItem('READY', 'SERVED'), true)
 assert.equal(canTransitionItem('READY', 'PENDING'), false)
 assert.equal(canTransitionItem('SERVED', 'PREPARING'), false)
+
+assert.equal(canReplenishStock('PREPARING'), true)
+assert.equal(canReplenishStock('PENDING'), false)
+assert.equal(canReplenishStock('READY'), false)
+assert.equal(canReplenishStock('SERVED'), false)
 
 console.log('order-status: OK')

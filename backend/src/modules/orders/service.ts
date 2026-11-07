@@ -11,21 +11,42 @@ export const orderInclude = {
 
 export type OrderWithDetails = Prisma.OrderGetPayload<{ include: typeof orderInclude }>
 
-export async function deductIngredients(
+type StockOperation = 'decrement' | 'increment'
+
+type StockItem = {
+  quantity: number
+  dish: { dishIngredients: Array<{ ingredientId: string; quantity: Prisma.Decimal }> }
+}
+
+async function moveStock(
   tx: Prisma.TransactionClient,
   tenantId: string,
-  item: {
-    quantity: number
-    dish: { dishIngredients: Array<{ ingredientId: string; quantity: Prisma.Decimal }> }
-  }
+  item: StockItem,
+  operation: StockOperation
 ): Promise<void> {
   for (const ingredient of item.dish.dishIngredients) {
     const amount = new Prisma.Decimal(ingredient.quantity).mul(item.quantity)
     await tx.ingredient.update({
       where: { id: ingredient.ingredientId, tenantId },
-      data: { currentStock: { decrement: amount } },
+      data: { currentStock: { [operation]: amount } },
     })
   }
+}
+
+export function deductIngredients(
+  tx: Prisma.TransactionClient,
+  tenantId: string,
+  item: StockItem
+): Promise<void> {
+  return moveStock(tx, tenantId, item, 'decrement')
+}
+
+export function replenishIngredients(
+  tx: Prisma.TransactionClient,
+  tenantId: string,
+  item: StockItem
+): Promise<void> {
+  return moveStock(tx, tenantId, item, 'increment')
 }
 
 function emit(io: Server, order: OrderWithDetails, event: 'order:new' | 'order:updated'): void {

@@ -1,11 +1,11 @@
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
-import { canTransitionItem, canTransitionOrder } from '../../lib/order-status'
+import { canReplenishStock, canTransitionItem, canTransitionOrder } from '../../lib/order-status'
 import { parse } from '../../lib/validation'
 import { requireTenant } from '../../lib/guards'
 import { paginationMeta, paginationSchema } from '../../lib/pagination'
 import { AppError, notFound } from '../../lib/errors'
-import { deductIngredients, emitOrderUpdated, orderInclude } from './service'
+import { deductIngredients, emitOrderUpdated, orderInclude, replenishIngredients } from './service'
 
 const orderStatusSchema = z.enum(['PENDING', 'PREPARING', 'READY', 'SERVED', 'CANCELLED'])
 const itemStatusSchema = z.enum(['PENDING', 'PREPARING', 'READY', 'SERVED'])
@@ -98,6 +98,14 @@ export default async function staffOrderRoutes(app: FastifyInstance): Promise<vo
           where: { orderId: id, itemStatus: { in: ['PENDING', 'PREPARING', 'READY'] } },
           data: { itemStatus: 'SERVED' },
         })
+      }
+
+      if (body.status === 'CANCELLED') {
+        for (const item of order.items) {
+          if (canReplenishStock(item.itemStatus)) {
+            await replenishIngredients(tx, tenantId, item)
+          }
+        }
       }
 
       return tx.order.update({

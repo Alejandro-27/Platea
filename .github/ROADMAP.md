@@ -68,6 +68,6 @@
 - **TanStack Query**: no forma parte del MVP; evaluar en v1.5.
 - **Super Admin**: rol `SUPER_ADMIN` con `tenantId` nullable; el dashboard visual sigue en Fase 4.
 - **Refresh tokens**: fuera del MVP; JWT de 7 días. Revisar con el frontend (cookie `httpOnly` + revocación).
-- **Inventario**: el descuento ocurre al transicionar a `PREPARING`; definir si una cancelación posterior repone stock.
+- **Inventario**: el descuento ocurre al transicionar a `PREPARING`; cancelar desde `PREPARING` repone el stock reservado, cancelar desde `PENDING` no lo toca y los ítems ya `READY` no se reponen.
 - **Impresión**: en v1 solo KDS; no hay impresión automática.
 - **Pagos y delivery**: fuera del MVP; pertenecen a v1.5.

@@ -23,7 +23,7 @@ Módulos del MVP:
    - fuerza `tenantId` en `data` para creaciones (ignora el valor enviado por el cliente);
    - **no** procesa relaciones anidadas. Un create anidado de un modelo con `tenantId` debe enviarlo explícitamente o fallará por NOT NULL.
 3. **Sesiones anónimas para comensales**: el QR abre `/menu/{tenantId}?table={tableId}`. El backend crea una `Session` anónima con `tableId` obligatorio y `expiresAt`. El frontend persiste `sessionId` y `tableId` en `localStorage` para sobrevivir recargas.
-4. **Inventario al pasar a `PREPARING`**: el stock de ingredientes se descuenta cuando el pedido/ítem entra en preparación, **nunca al crear el pedido**. Debe ser idempotente y ejecutarse en transacción.
+4. **Inventario al pasar a `PREPARING`**: el stock de ingredientes se descuenta cuando el pedido/ítem entra en preparación, **nunca al crear el pedido**. Debe ser idempotente y ejecutarse en transacción. Si el pedido se cancela desde `PREPARING`, el stock descontado se repone; cancelar desde `PENDING` no toca el stock (nunca se descontó) y los ítems en `READY` no se reponen (los ingredientes ya se consumieron).
 5. **Upload de imágenes en dos pasos**: `POST /api/upload` recibe el archivo y devuelve la URL de Cloudinary; después `POST/PATCH /api/dishes` recibe esa URL como string en `imageUrl`.
 6. **Precio congelado**: `OrderItem.price` guarda el precio del plato al momento del pedido; los cambios posteriores de precio no alteran pedidos pasados.
 7. **IDs `cuid()`** generados por Prisma, no UUID.
@@ -167,7 +167,6 @@ Reglas de seguridad de la API:
 
 ## Pendientes conocidos
 
-- Decidir si una cancelación posterior a `PREPARING` repone stock.
 - **Refresh tokens**: no se implementan en el MVP. El JWT dura 7 días; cuando exista el frontend se revisará con cookie `httpOnly` y revocación. Desactivar un tenant bloquea nuevos logins y sesiones, pero un token de staff ya emitido sigue vigente hasta expirar.
 - Frontend completo y despliegue.
 - `npm audit`: 0 vulnerabilidades en runtime; quedan 10 moderadas en tooling de ESLint (`minimatch`), sin impacto en producción. Se fijó `deepmerge-ts` 8.0.2 vía `overrides` para cerrar las 3 altas de Prisma sin migrar a v7.

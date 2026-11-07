@@ -22,3 +22,11 @@ export function canTransitionOrder(from: OrderStatus, to: OrderStatus): boolean 
 export function canTransitionItem(from: OrderItemStatus, to: OrderItemStatus): boolean {
   return ITEM_TRANSITIONS[from].includes(to)
 }
+
+/**
+ * Al cancelar un pedido solo se repone el stock de los ítems en PREPARING:
+ * PENDING nunca lo descontó y READY ya consumió los ingredientes.
+ */
+export function canReplenishStock(status: OrderItemStatus): boolean {
+  return status === 'PREPARING'
+}
