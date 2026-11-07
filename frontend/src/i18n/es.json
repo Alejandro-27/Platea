@@ -1,0 +1,204 @@
+{
+  "common": {
+    "loading": "Cargando…",
+    "retry": "Reintentar",
+    "language": "Idioma",
+    "close": "Cerrar",
+    "decrease": "Quitar uno",
+    "increase": "Añadir uno"
+  },
+  "scan": {
+    "title": "Escanea el QR de tu mesa",
+    "message": "La carta y los pedidos están disponibles desde el código QR que encontrarás en tu mesa."
+  },
+  "menu": {
+    "table": "Mesa {{number}}",
+    "search": "Buscar en la carta",
+    "all": "Todo",
+    "empty": "La carta todavía no tiene platos disponibles.",
+    "noResults": "No encontramos platos con ese criterio.",
+    "add": "Añadir",
+    "outOfStock": "Agotado",
+    "spicy": "Picante",
+    "vegetarian": "Vegetariano",
+    "glutenFree": "Sin gluten",
+    "allergens": "Alérgenos: {{list}}",
+    "rating": "{{rating}} · {{reviews}} valoraciones",
+    "loadError": "No pudimos cargar la carta.",
+    "sessionError": "No pudimos abrir tu sesión. Vuelve a escanear el QR de la mesa."
+  },
+  "cart": {
+    "title": "Tu pedido",
+    "items_one": "{{count}} artículo",
+    "items_other": "{{count}} artículos",
+    "view": "Ver pedido",
+    "empty": "Todavía no has añadido nada.",
+    "itemNotes": "Nota para este plato (opcional)",
+    "itemNotesFor": "Nota para {{name}}",
+    "orderNotes": "Notas del pedido",
+    "orderNotesPlaceholder": "Alergias, indicaciones para la cocina…",
+    "subtotal": "Total estimado",
+    "send": "Enviar pedido",
+    "sending": "Enviando…",
+    "error": {
+      "outOfStock": "Uno de los platos se ha agotado. Revísalo antes de enviar.",
+      "session": "Tu sesión ha caducado. Vuelve a escanear el QR de la mesa.",
+      "generic": "No pudimos enviar el pedido. Inténtalo de nuevo."
+    }
+  },
+  "staff": {
+    "logout": "Salir",
+    "error": "No pudimos cargar los datos. Inténtalo de nuevo.",
+    "nav": {
+      "label": "Secciones",
+      "dashboard": "Resumen",
+      "kitchen": "Cocina",
+      "waiter": "Mesas",
+      "orders": "Pedidos",
+      "dishes": "Platos",
+      "categories": "Categorías",
+      "tables": "Mesas / QR",
+      "ingredients": "Inventario",
+      "users": "Usuarios",
+      "settings": "Ajustes"
+    },
+    "login": {
+      "title": "Acceso del personal",
+      "subtitle": "Entra con tu cuenta de Platea.",
+      "email": "Correo",
+      "password": "Contraseña",
+      "submit": "Entrar",
+      "submitting": "Entrando…",
+      "error": "Correo o contraseña incorrectos.",
+      "superAdmin": "La consola de Super Admin no está disponible en esta web."
+    },
+    "kds": {
+      "title": "Cocina",
+      "table": "Mesa {{number}}",
+      "noTable": "Sin mesa",
+      "minutes_one": "hace {{count}} min",
+      "minutes_other": "hace {{count}} min",
+      "empty": "Sin pedidos",
+      "soundOn": "Aviso activado",
+      "soundOff": "Aviso silenciado",
+      "start": "Empezar",
+      "markReady": "Marcar listo",
+      "markServed": "Marcar servido"
+    },
+    "waiter": {
+      "title": "Mesas",
+      "empty": "No hay pedidos activos.",
+      "markServed": "Marcar servido"
+    },
+    "admin": {
+      "confirmDelete": "¿Eliminar «{{name}}»?",
+      "create": "Añadir",
+      "edit": "Editar",
+      "delete": "Eliminar",
+      "cancel": "Cancelar",
+      "save": "Guardar",
+      "saving": "Guardando…",
+      "copied": "Copiado",
+      "inactive": "Inactivo",
+      "empty": "No hay elementos todavía.",
+      "dashboard": {
+        "activeOrders": "Pedidos activos",
+        "totalOrders": "Pedidos recientes"
+      },
+      "categories": {
+        "name": "Nombre",
+        "sortOrder": "Orden",
+        "active": "Activa"
+      },
+      "tables": {
+        "number": "Número de mesa",
+        "active": "Activa",
+        "qr": "Ver enlace QR",
+        "copy": "Copiar enlace",
+        "open": "Abrir carta",
+        "qrHint": "Este es el enlace que debe abrir el QR de la mesa."
+      },
+      "ingredients": {
+        "name": "Nombre",
+        "unit": "Unidad",
+        "stock": "Stock actual",
+        "minStock": "Stock mínimo",
+        "cost": "Coste por unidad",
+        "min": "mín. {{value}}",
+        "lowStock": "Stock bajo"
+      },
+      "users": {
+        "email": "Correo",
+        "password": "Contraseña",
+        "passwordHint": "Déjalo vacío para no cambiarla",
+        "role": "Rol",
+        "roleAdmin": "Administrador",
+        "roleStaff": "Mesero",
+        "roleKitchen": "Cocina"
+      },
+      "orders": {
+        "filter": "Filtrar por estado",
+        "all": "Todos"
+      },
+      "dishes": {
+        "name": "Nombre",
+        "description": "Descripción",
+        "price": "Precio",
+        "category": "Categoría",
+        "image": "Imagen",
+        "upload": "Subir imagen",
+        "uploading": "Subiendo…",
+        "allergens": "Alérgenos",
+        "allergensHint": "Sepáralos con comas",
+        "sortOrder": "Orden",
+        "available": "Disponible (visible en la carta)",
+        "outOfStock": "Agotado",
+        "recipe": "Receta (descuenta inventario)",
+        "addIngredient": "Añadir ingrediente",
+        "ingredient": "Ingrediente",
+        "quantity": "Cantidad",
+        "needCategory": "Crea al menos una categoría antes de añadir platos.",
+        "inStock": "Disponible"
+      },
+      "settings": {
+        "name": "Nombre del restaurante",
+        "logoUrl": "URL del logo",
+        "primaryColor": "Color principal",
+        "secondaryColor": "Color secundario",
+        "saved": "Cambios guardados"
+      }
+    }
+  },
+  "order": {
+    "title": "Estado del pedido",
+    "table": "Mesa {{number}}",
+    "placedAt": "Pedido realizado a las {{time}}",
+    "total": "Total",
+    "notes": "Notas",
+    "backToMenu": "Volver a la carta",
+    "reconnecting": "Reconectando…",
+    "loadError": "No pudimos cargar el pedido.",
+    "sessionError": "Tu sesión ha caducado. Vuelve a escanear el QR de la mesa.",
+    "cancelled": "Este pedido fue cancelado. Habla con el personal si necesitas ayuda.",
+    "status": {
+      "PENDING": "Recibido",
+      "PREPARING": "En preparación",
+      "READY": "Listo",
+      "SERVED": "Servido",
+      "CANCELLED": "Cancelado"
+    },
+    "statusHint": {
+      "PENDING": "Hemos recibido tu pedido.",
+      "PREPARING": "La cocina está preparando tu pedido.",
+      "READY": "Tu pedido está listo y va en camino.",
+      "SERVED": "¡Que lo disfrutes!",
+      "CANCELLED": "El pedido se ha cancelado."
+    },
+    "itemStatus": {
+      "PENDING": "Pendiente",
+      "PREPARING": "En preparación",
+      "READY": "Listo",
+      "SERVED": "Servido"
+    }
+  }
+}

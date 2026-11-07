@@ -1,0 +1,204 @@
+{
+  "common": {
+    "loading": "Loading…",
+    "retry": "Try again",
+    "language": "Language",
+    "close": "Close",
+    "decrease": "Remove one",
+    "increase": "Add one"
+  },
+  "scan": {
+    "title": "Scan your table's QR code",
+    "message": "The menu and ordering are available from the QR code on your table."
+  },
+  "menu": {
+    "table": "Table {{number}}",
+    "search": "Search the menu",
+    "all": "All",
+    "empty": "The menu has no available dishes yet.",
+    "noResults": "No dishes match that search.",
+    "add": "Add",
+    "outOfStock": "Sold out",
+    "spicy": "Spicy",
+    "vegetarian": "Vegetarian",
+    "glutenFree": "Gluten-free",
+    "allergens": "Allergens: {{list}}",
+    "rating": "{{rating}} · {{reviews}} reviews",
+    "loadError": "We couldn't load the menu.",
+    "sessionError": "We couldn't start your session. Scan the table's QR code again."
+  },
+  "cart": {
+    "title": "Your order",
+    "items_one": "{{count}} item",
+    "items_other": "{{count}} items",
+    "view": "View order",
+    "empty": "You haven't added anything yet.",
+    "itemNotes": "Note for this dish (optional)",
+    "itemNotesFor": "Note for {{name}}",
+    "orderNotes": "Order notes",
+    "orderNotesPlaceholder": "Allergies, instructions for the kitchen…",
+    "subtotal": "Estimated total",
+    "send": "Send order",
+    "sending": "Sending…",
+    "error": {
+      "outOfStock": "One of the dishes is sold out. Please review it before sending.",
+      "session": "Your session has expired. Scan the table's QR code again.",
+      "generic": "We couldn't send your order. Please try again."
+    }
+  },
+  "staff": {
+    "logout": "Log out",
+    "error": "We couldn't load the data. Please try again.",
+    "nav": {
+      "label": "Sections",
+      "dashboard": "Overview",
+      "kitchen": "Kitchen",
+      "waiter": "Tables",
+      "orders": "Orders",
+      "dishes": "Dishes",
+      "categories": "Categories",
+      "tables": "Tables / QR",
+      "ingredients": "Inventory",
+      "users": "Users",
+      "settings": "Settings"
+    },
+    "login": {
+      "title": "Staff access",
+      "subtitle": "Sign in with your Platea account.",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Sign in",
+      "submitting": "Signing in…",
+      "error": "Wrong email or password.",
+      "superAdmin": "The Super Admin console is not available on this site."
+    },
+    "kds": {
+      "title": "Kitchen",
+      "table": "Table {{number}}",
+      "noTable": "No table",
+      "minutes_one": "{{count}} min ago",
+      "minutes_other": "{{count}} min ago",
+      "empty": "No orders",
+      "soundOn": "Alerts on",
+      "soundOff": "Alerts muted",
+      "start": "Start",
+      "markReady": "Mark ready",
+      "markServed": "Mark served"
+    },
+    "waiter": {
+      "title": "Tables",
+      "empty": "No active orders.",
+      "markServed": "Mark served"
+    },
+    "admin": {
+      "confirmDelete": "Delete “{{name}}”?",
+      "create": "Add",
+      "edit": "Edit",
+      "delete": "Delete",
+      "cancel": "Cancel",
+      "save": "Save",
+      "saving": "Saving…",
+      "copied": "Copied",
+      "inactive": "Inactive",
+      "empty": "Nothing here yet.",
+      "dashboard": {
+        "activeOrders": "Active orders",
+        "totalOrders": "Recent orders"
+      },
+      "categories": {
+        "name": "Name",
+        "sortOrder": "Order",
+        "active": "Active"
+      },
+      "tables": {
+        "number": "Table number",
+        "active": "Active",
+        "qr": "View QR link",
+        "copy": "Copy link",
+        "open": "Open menu",
+        "qrHint": "This is the link the table's QR code should open."
+      },
+      "ingredients": {
+        "name": "Name",
+        "unit": "Unit",
+        "stock": "Current stock",
+        "minStock": "Minimum stock",
+        "cost": "Cost per unit",
+        "min": "min. {{value}}",
+        "lowStock": "Low stock"
+      },
+      "users": {
+        "email": "Email",
+        "password": "Password",
+        "passwordHint": "Leave empty to keep it unchanged",
+        "role": "Role",
+        "roleAdmin": "Administrator",
+        "roleStaff": "Waiter",
+        "roleKitchen": "Kitchen"
+      },
+      "orders": {
+        "filter": "Filter by status",
+        "all": "All"
+      },
+      "dishes": {
+        "name": "Name",
+        "description": "Description",
+        "price": "Price",
+        "category": "Category",
+        "image": "Image",
+        "upload": "Upload image",
+        "uploading": "Uploading…",
+        "allergens": "Allergens",
+        "allergensHint": "Separate them with commas",
+        "sortOrder": "Order",
+        "available": "Available (visible on the menu)",
+        "outOfStock": "Sold out",
+        "recipe": "Recipe (deducts inventory)",
+        "addIngredient": "Add ingredient",
+        "ingredient": "Ingredient",
+        "quantity": "Quantity",
+        "needCategory": "Create at least one category before adding dishes.",
+        "inStock": "Available"
+      },
+      "settings": {
+        "name": "Restaurant name",
+        "logoUrl": "Logo URL",
+        "primaryColor": "Primary color",
+        "secondaryColor": "Secondary color",
+        "saved": "Changes saved"
+      }
+    }
+  },
+  "order": {
+    "title": "Order status",
+    "table": "Table {{number}}",
+    "placedAt": "Order placed at {{time}}",
+    "total": "Total",
+    "notes": "Notes",
+    "backToMenu": "Back to the menu",
+    "reconnecting": "Reconnecting…",
+    "loadError": "We couldn't load the order.",
+    "sessionError": "Your session has expired. Scan the table's QR code again.",
+    "cancelled": "This order was cancelled. Talk to the staff if you need help.",
+    "status": {
+      "PENDING": "Received",
+      "PREPARING": "Preparing",
+      "READY": "Ready",
+      "SERVED": "Served",
+      "CANCELLED": "Cancelled"
+    },
+    "statusHint": {
+      "PENDING": "We've received your order.",
+      "PREPARING": "The kitchen is preparing your order.",
+      "READY": "Your order is ready and on its way.",
+      "SERVED": "Enjoy your meal!",
+      "CANCELLED": "The order was cancelled."
+    },
+    "itemStatus": {
+      "PENDING": "Pending",
+      "PREPARING": "Preparing",
+      "READY": "Ready",
+      "SERVED": "Served"
+    }
+  }
+}
