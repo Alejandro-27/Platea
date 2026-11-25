@@ -33,7 +33,9 @@ export function Dialog({ open, onOpenChange, title, children, footer }: DialogPr
           </div>
           <div className="flex-1 overflow-y-auto px-4 py-4">{children}</div>
           {footer && (
-            <div className="flex justify-end gap-2 border-t border-line px-4 py-3">{footer}</div>
+            <div className="flex flex-wrap justify-end gap-2 border-t border-line px-4 py-3">
+              {footer}
+            </div>
           )}
         </DialogPrimitive.Content>
       </DialogPrimitive.Portal>

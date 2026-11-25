@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { Field, Input } from '@/components/ui/Form'
 import { useAsync } from '@/hooks/useAsync'
 import { getTenantSettings, updateTenantSettings } from '@/lib/staff'
+import { settingsSchema, validate } from '@/lib/schemas'
 import { useAuth } from '@/store/auth'
 import type { TenantSettings } from '@/types/api'
 
@@ -17,24 +18,31 @@ function SettingsForm({ initial }: { initial: TenantSettings }) {
   const [secondaryColor, setSecondaryColor] = useState(initial.secondaryColor ?? '')
   const [saved, setSaved] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [error, setError] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const save = async () => {
+    const payload = {
+      name: name.trim(),
+      logoUrl: logoUrl.trim() || null,
+      primaryColor,
+      secondaryColor: secondaryColor.trim() || null,
+    }
+    const invalid = validate(settingsSchema, payload)
+    if (invalid) {
+      setError(invalid)
+      return
+    }
+
     setSaving(true)
-    setError(false)
+    setError(null)
     setSaved(false)
     try {
-      await updateTenantSettings({
-        name,
-        logoUrl: logoUrl.trim() || null,
-        primaryColor,
-        secondaryColor: secondaryColor.trim() || null,
-      })
+      await updateTenantSettings(payload)
       const tenant = useAuth.getState().tenant
-      if (tenant) useAuth.setState({ tenant: { ...tenant, name } })
+      if (tenant) useAuth.setState({ tenant: { ...tenant, name: payload.name } })
       setSaved(true)
     } catch {
-      setError(true)
+      setError('staff.error')
     } finally {
       setSaving(false)
     }
@@ -73,7 +81,7 @@ function SettingsForm({ initial }: { initial: TenantSettings }) {
 
       {error && (
         <p role="alert" className="text-sm text-rose-700">
-          {t('staff.error')}
+          {t(error)}
         </p>
       )}
       {saved && (
@@ -82,7 +90,7 @@ function SettingsForm({ initial }: { initial: TenantSettings }) {
         </p>
       )}
 
-      <Button onClick={() => void save()} disabled={saving || name.trim().length < 2}>
+      <Button onClick={() => void save()} disabled={saving}>
         {saving ? t('staff.admin.saving') : t('staff.admin.save')}
       </Button>
     </div>

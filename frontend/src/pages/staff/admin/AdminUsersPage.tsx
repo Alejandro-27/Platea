@@ -8,6 +8,7 @@ import { Dialog } from '@/components/ui/Dialog'
 import { Field, Input, Select } from '@/components/ui/Form'
 import { useAsync } from '@/hooks/useAsync'
 import { createUser, deleteUser, listUsers, updateUser } from '@/lib/staff'
+import { userSchema, userUpdateSchema, validate } from '@/lib/schemas'
 import type { StaffUser, UserRole } from '@/types/api'
 
 const ROLES: UserRole[] = ['ADMIN', 'STAFF', 'KITCHEN']
@@ -26,7 +27,7 @@ export default function AdminUsersPage() {
   const [password, setPassword] = useState('')
   const [role, setRole] = useState<UserRole>('STAFF')
   const [saving, setSaving] = useState(false)
-  const [error, setError] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const close = () => setEditing(null)
 
@@ -35,7 +36,7 @@ export default function AdminUsersPage() {
     setEmail('')
     setPassword('')
     setRole('STAFF')
-    setError(false)
+    setError(null)
   }
 
   const openEdit = (user: StaffUser) => {
@@ -43,26 +44,40 @@ export default function AdminUsersPage() {
     setEmail(user.email)
     setPassword('')
     setRole(user.role)
-    setError(false)
+    setError(null)
   }
 
   const save = async () => {
+    const cleanEmail = email.trim()
+    const invalid =
+      editing === 'new'
+        ? validate(userSchema, { email: cleanEmail, password, role })
+        : validate(userUpdateSchema, {
+            email: cleanEmail,
+            role,
+            ...(password ? { password } : {}),
+          })
+    if (invalid) {
+      setError(invalid)
+      return
+    }
+
     setSaving(true)
-    setError(false)
+    setError(null)
     try {
       if (editing === 'new') {
-        await createUser({ email, password, role })
+        await createUser({ email: cleanEmail, password, role })
       } else if (editing) {
         await updateUser(editing.id, {
-          email,
+          email: cleanEmail,
           role,
-          ...(password.trim().length > 0 ? { password } : {}),
+          ...(password ? { password } : {}),
         })
       }
       close()
       users.reload()
     } catch {
-      setError(true)
+      setError('staff.error')
     } finally {
       setSaving(false)
     }
@@ -74,11 +89,9 @@ export default function AdminUsersPage() {
       await deleteUser(user.id)
       users.reload()
     } catch {
-      setError(true)
+      setError('staff.error')
     }
   }
-
-  const canSave = email.trim().length > 0 && (password === '' || password.length >= 8)
 
   return (
     <StaffLayout
@@ -143,7 +156,7 @@ export default function AdminUsersPage() {
             <Button variant="secondary" onClick={close}>
               {t('staff.admin.cancel')}
             </Button>
-            <Button onClick={() => void save()} disabled={saving || !canSave}>
+            <Button onClick={() => void save()} disabled={saving}>
               {saving ? t('staff.admin.saving') : t('staff.admin.save')}
             </Button>
           </>
@@ -175,7 +188,7 @@ export default function AdminUsersPage() {
           </Field>
           {error && (
             <p role="alert" className="text-sm text-rose-700">
-              {t('staff.error')}
+              {t(error)}
             </p>
           )}
         </div>

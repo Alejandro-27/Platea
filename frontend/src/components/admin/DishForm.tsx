@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/Button'
 import { Checkbox, Field, Input, Select, Textarea } from '@/components/ui/Form'
 import { createDish, updateDish, uploadImage } from '@/lib/staff'
+import { dishSchema, validate } from '@/lib/schemas'
 import type { AdminDish, Category, DishInput, Ingredient } from '@/types/api'
 
 interface RecipeRow {
@@ -41,44 +42,59 @@ export function DishForm({ dish, categories, ingredients, onDone, onCancel }: Di
   )
   const [uploading, setUploading] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [error, setError] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleFile = async (file: File | undefined) => {
     if (!file) return
     setUploading(true)
-    setError(false)
+    setError(null)
     try {
       setImageUrl(await uploadImage(file))
     } catch {
-      setError(true)
+      setError('staff.error')
     } finally {
       setUploading(false)
     }
   }
 
   const save = async () => {
-    setSaving(true)
-    setError(false)
-
-    const input: DishInput = {
-      name,
-      description: description.trim() || null,
+    const parsed = {
+      name: name.trim(),
       price: Number(price),
       imageUrl: imageUrl.trim() || null,
+      categoryId,
+      sortOrder: Number(sortOrder) || 0,
+      allergens: allergens
+        .split(',')
+        .map((value) => value.trim())
+        .filter(Boolean),
+      recipe: recipe
+        .filter((row) => row.ingredientId && row.quantity !== '')
+        .map((row) => ({ ingredientId: row.ingredientId, quantity: Number(row.quantity) })),
+    }
+    const invalid = validate(dishSchema, parsed)
+    if (invalid) {
+      setError(invalid)
+      return
+    }
+
+    setSaving(true)
+    setError(null)
+
+    const input: DishInput = {
+      name: parsed.name,
+      price: parsed.price,
+      imageUrl: parsed.imageUrl,
+      categoryId: parsed.categoryId,
+      sortOrder: parsed.sortOrder,
+      allergens: parsed.allergens,
+      description: description.trim() || null,
       isAvailable: available,
       isOutOfStock: outOfStock,
       isSpicy: spicy,
       isVegetarian: vegetarian,
       isGlutenFree: glutenFree,
-      allergens: allergens
-        .split(',')
-        .map((value) => value.trim())
-        .filter(Boolean),
-      sortOrder: Number(sortOrder) || 0,
-      categoryId,
-      ingredients: recipe
-        .filter((row) => row.ingredientId && row.quantity !== '')
-        .map((row) => ({ ingredientId: row.ingredientId, quantity: Number(row.quantity) })),
+      ingredients: parsed.recipe,
     }
 
     try {
@@ -86,13 +102,11 @@ export function DishForm({ dish, categories, ingredients, onDone, onCancel }: Di
       else await createDish(input)
       onDone()
     } catch {
-      setError(true)
+      setError('staff.error')
     } finally {
       setSaving(false)
     }
   }
-
-  const canSave = name.trim().length > 0 && categoryId !== '' && Number(price) > 0
 
   return (
     <div className="space-y-3">
@@ -248,7 +262,7 @@ export function DishForm({ dish, categories, ingredients, onDone, onCancel }: Di
 
       {error && (
         <p role="alert" className="text-sm text-rose-700">
-          {t('staff.error')}
+          {t(error)}
         </p>
       )}
 
@@ -256,7 +270,7 @@ export function DishForm({ dish, categories, ingredients, onDone, onCancel }: Di
         <Button variant="secondary" onClick={onCancel}>
           {t('staff.admin.cancel')}
         </Button>
-        <Button onClick={() => void save()} disabled={saving || uploading || !canSave}>
+        <Button onClick={() => void save()} disabled={saving || uploading}>
           {saving ? t('staff.admin.saving') : t('staff.admin.save')}
         </Button>
       </div>

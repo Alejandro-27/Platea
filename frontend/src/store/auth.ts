@@ -26,7 +26,7 @@ export const useAuth = create<AuthState>()(
 export function roleHome(role: UserRole | null | undefined): string {
   switch (role) {
     case 'KITCHEN':
-      return '/kitchen'
+      return '/kds'
     case 'STAFF':
       return '/waiter'
     case 'ADMIN':

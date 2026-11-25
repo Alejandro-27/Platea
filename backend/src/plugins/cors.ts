@@ -7,6 +7,8 @@ export default fp(
     await app.register(cors, {
       origin: env.FRONTEND_URL,
       credentials: true,
+      // @fastify/cors limita por defecto a GET,HEAD,POST; el panel usa PATCH y DELETE.
+      methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     })
   },
   { name: 'cors' }

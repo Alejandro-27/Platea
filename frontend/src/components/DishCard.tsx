@@ -1,5 +1,6 @@
-import { Flame, Leaf, Star, WheatOff } from 'lucide-react'
+import { Star } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { DishBadges } from '@/components/DishBadges'
 import { Button } from '@/components/ui/Button'
 import { QuantityStepper } from '@/components/QuantityStepper'
 import { formatMoney, formatRating } from '@/lib/money'
@@ -8,9 +9,10 @@ import type { PublicDish } from '@/types/api'
 
 interface DishCardProps {
   dish: PublicDish
+  onSelect: (dish: PublicDish) => void
 }
 
-export function DishCard({ dish }: DishCardProps) {
+export function DishCard({ dish, onSelect }: DishCardProps) {
   const { t, i18n } = useTranslation()
   const line = useCart((state) => state.lines.find((item) => item.dishId === dish.id))
   const add = useCart((state) => state.add)
@@ -18,25 +20,40 @@ export function DishCard({ dish }: DishCardProps) {
 
   return (
     <article className="flex gap-3 rounded-2xl bg-surface-2 p-3 shadow-card">
-      {dish.imageUrl ? (
-        <img
-          src={dish.imageUrl}
-          alt=""
-          loading="lazy"
-          className="h-24 w-24 shrink-0 rounded-xl object-cover"
-        />
-      ) : (
-        <div
-          aria-hidden
-          className="flex h-24 w-24 shrink-0 items-center justify-center rounded-xl bg-surface text-2xl font-semibold text-muted"
-        >
-          {dish.name.slice(0, 1).toUpperCase()}
-        </div>
-      )}
+      <button
+        type="button"
+        onClick={() => onSelect(dish)}
+        aria-label={t('menu.details', { name: dish.name })}
+        className="shrink-0 self-start rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+      >
+        {dish.imageUrl ? (
+          <img
+            src={dish.imageUrl}
+            alt=""
+            loading="lazy"
+            className="h-24 w-24 rounded-xl object-cover"
+          />
+        ) : (
+          <div
+            aria-hidden
+            className="flex h-24 w-24 items-center justify-center rounded-xl bg-surface text-2xl font-semibold text-muted"
+          >
+            {dish.name.slice(0, 1).toUpperCase()}
+          </div>
+        )}
+      </button>
 
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex items-start justify-between gap-2">
-          <h3 className="font-semibold leading-snug">{dish.name}</h3>
+          <h3 className="font-semibold leading-snug">
+            <button
+              type="button"
+              onClick={() => onSelect(dish)}
+              className="text-left hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+            >
+              {dish.name}
+            </button>
+          </h3>
           <span className="whitespace-nowrap font-semibold text-ink">
             {formatMoney(dish.price, i18n.language)}
           </span>
@@ -46,31 +63,7 @@ export function DishCard({ dish }: DishCardProps) {
           <p className="mt-1 line-clamp-2 text-sm text-muted">{dish.description}</p>
         )}
 
-        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
-          {dish.isSpicy && (
-            <span className="inline-flex items-center gap-1 text-rose-600">
-              <Flame className="h-3.5 w-3.5" aria-hidden />
-              {t('menu.spicy')}
-            </span>
-          )}
-          {dish.isVegetarian && (
-            <span className="inline-flex items-center gap-1 text-emerald-700">
-              <Leaf className="h-3.5 w-3.5" aria-hidden />
-              {t('menu.vegetarian')}
-            </span>
-          )}
-          {dish.isGlutenFree && (
-            <span className="inline-flex items-center gap-1 text-amber-700">
-              <WheatOff className="h-3.5 w-3.5" aria-hidden />
-              {t('menu.glutenFree')}
-            </span>
-          )}
-          {dish.allergens.length > 0 && (
-            <span className="text-muted">
-              {t('menu.allergens', { list: dish.allergens.join(', ') })}
-            </span>
-          )}
-        </div>
+        <DishBadges dish={dish} className="mt-2" />
 
         <div className="mt-auto flex items-center justify-between gap-2 pt-3">
           {dish.reviewCount > 0 ? (

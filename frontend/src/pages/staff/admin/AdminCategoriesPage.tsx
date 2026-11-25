@@ -8,6 +8,7 @@ import { Dialog } from '@/components/ui/Dialog'
 import { Checkbox, Field, Input } from '@/components/ui/Form'
 import { useAsync } from '@/hooks/useAsync'
 import { createCategory, deleteCategory, listCategories, updateCategory } from '@/lib/staff'
+import { categorySchema, validate } from '@/lib/schemas'
 import type { Category } from '@/types/api'
 
 export default function AdminCategoriesPage() {
@@ -18,7 +19,7 @@ export default function AdminCategoriesPage() {
   const [sortOrder, setSortOrder] = useState('0')
   const [active, setActive] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [error, setError] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const close = () => setEditing(null)
 
@@ -27,7 +28,7 @@ export default function AdminCategoriesPage() {
     setName('')
     setSortOrder('0')
     setActive(true)
-    setError(false)
+    setError(null)
   }
 
   const openEdit = (category: Category) => {
@@ -35,22 +36,29 @@ export default function AdminCategoriesPage() {
     setName(category.name)
     setSortOrder(String(category.sortOrder))
     setActive(category.isActive)
-    setError(false)
+    setError(null)
   }
 
   const save = async () => {
+    const payload = { name, sortOrder: Number(sortOrder) }
+    const invalid = validate(categorySchema, payload)
+    if (invalid) {
+      setError(invalid)
+      return
+    }
+
     setSaving(true)
-    setError(false)
+    setError(null)
     try {
       if (editing === 'new') {
-        await createCategory({ name, sortOrder: Number(sortOrder), isActive: active })
+        await createCategory({ ...payload, isActive: active })
       } else if (editing) {
-        await updateCategory(editing.id, { name, sortOrder: Number(sortOrder), isActive: active })
+        await updateCategory(editing.id, { ...payload, isActive: active })
       }
       close()
       categories.reload()
     } catch {
-      setError(true)
+      setError('staff.error')
     } finally {
       setSaving(false)
     }
@@ -62,7 +70,7 @@ export default function AdminCategoriesPage() {
       await deleteCategory(category.id)
       categories.reload()
     } catch {
-      setError(true)
+      setError('staff.error')
     }
   }
 
@@ -138,7 +146,7 @@ export default function AdminCategoriesPage() {
             <Button variant="secondary" onClick={close}>
               {t('staff.admin.cancel')}
             </Button>
-            <Button onClick={() => void save()} disabled={saving || name.trim().length === 0}>
+            <Button onClick={() => void save()} disabled={saving}>
               {saving ? t('staff.admin.saving') : t('staff.admin.save')}
             </Button>
           </>
@@ -163,7 +171,7 @@ export default function AdminCategoriesPage() {
           />
           {error && (
             <p role="alert" className="text-sm text-rose-700">
-              {t('staff.error')}
+              {t(error)}
             </p>
           )}
         </div>

@@ -4,6 +4,7 @@
     "retry": "Try again",
     "language": "Language",
     "close": "Close",
+    "done": "Done",
     "decrease": "Remove one",
     "increase": "Add one"
   },
@@ -15,6 +16,9 @@
     "table": "Table {{number}}",
     "search": "Search the menu",
     "all": "All",
+    "allCategories": "All categories",
+    "filters": "Filters",
+    "details": "View details for {{name}}",
     "empty": "The menu has no available dishes yet.",
     "noResults": "No dishes match that search.",
     "add": "Add",
@@ -116,6 +120,8 @@
         "qr": "View QR link",
         "copy": "Copy link",
         "open": "Open menu",
+        "download": "Download QR",
+        "qrAlt": "QR code for table {{number}}",
         "qrHint": "This is the link the table's QR code should open."
       },
       "ingredients": {
@@ -200,5 +206,21 @@
       "READY": "Ready",
       "SERVED": "Served"
     }
+  },
+  "validation": {
+    "name": "Enter a valid name.",
+    "number": "Enter a whole number.",
+    "tableNumber": "The table number must be greater than zero.",
+    "unit": "Enter a unit.",
+    "stock": "Stock cannot be negative.",
+    "cost": "Cost cannot be negative.",
+    "email": "Enter a valid email.",
+    "password": "The password must be at least 8 characters.",
+    "price": "The price must be greater than zero.",
+    "category": "Select a category.",
+    "quantity": "The quantity must be greater than zero.",
+    "allergens": "Maximum 20 allergens.",
+    "url": "The URL is not valid.",
+    "color": "The color is not valid."
   }
 }

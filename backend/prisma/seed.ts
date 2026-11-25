@@ -82,7 +82,12 @@ async function main(): Promise<void> {
 
   const dishes = [
     { name: 'Burger clásica', price: 9.9, description: 'Carne, queso y lechuga' },
-    { name: 'Ensalada vegetariana', price: 7.5, description: 'Verduras de temporada' },
+    {
+      name: 'Ensalada vegetariana',
+      price: 7.5,
+      description: 'Verduras de temporada',
+      isVegetarian: true,
+    },
   ]
 
   for (const dish of dishes) {

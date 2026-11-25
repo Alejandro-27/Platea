@@ -4,6 +4,7 @@
     "retry": "Reintentar",
     "language": "Idioma",
     "close": "Cerrar",
+    "done": "Listo",
     "decrease": "Quitar uno",
     "increase": "Añadir uno"
   },
@@ -15,6 +16,9 @@
     "table": "Mesa {{number}}",
     "search": "Buscar en la carta",
     "all": "Todo",
+    "allCategories": "Todas",
+    "filters": "Filtros",
+    "details": "Ver detalle de {{name}}",
     "empty": "La carta todavía no tiene platos disponibles.",
     "noResults": "No encontramos platos con ese criterio.",
     "add": "Añadir",
@@ -116,6 +120,8 @@
         "qr": "Ver enlace QR",
         "copy": "Copiar enlace",
         "open": "Abrir carta",
+        "download": "Descargar QR",
+        "qrAlt": "Código QR de la mesa {{number}}",
         "qrHint": "Este es el enlace que debe abrir el QR de la mesa."
       },
       "ingredients": {
@@ -200,5 +206,21 @@
       "READY": "Listo",
       "SERVED": "Servido"
     }
+  },
+  "validation": {
+    "name": "Escribe un nombre válido.",
+    "number": "Introduce un número entero.",
+    "tableNumber": "El número de mesa debe ser mayor que cero.",
+    "unit": "Indica la unidad.",
+    "stock": "El stock no puede ser negativo.",
+    "cost": "El coste no puede ser negativo.",
+    "email": "Introduce un correo válido.",
+    "password": "La contraseña debe tener al menos 8 caracteres.",
+    "price": "El precio debe ser mayor que cero.",
+    "category": "Selecciona una categoría.",
+    "quantity": "La cantidad debe ser mayor que cero.",
+    "allergens": "Máximo 20 alérgenos.",
+    "url": "La URL no es válida.",
+    "color": "El color no es válido."
   }
 }

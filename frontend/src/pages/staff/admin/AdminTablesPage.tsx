@@ -8,6 +8,7 @@ import { Dialog } from '@/components/ui/Dialog'
 import { Checkbox, Field, Input } from '@/components/ui/Form'
 import { useAsync } from '@/hooks/useAsync'
 import { createTable, deleteTable, getTableQr, listTables, updateTable } from '@/lib/staff'
+import { tableSchema, validate } from '@/lib/schemas'
 import type { TableInfo, TableQr } from '@/types/api'
 
 export default function AdminTablesPage() {
@@ -17,9 +18,11 @@ export default function AdminTablesPage() {
   const [number, setNumber] = useState('')
   const [active, setActive] = useState(true)
   const [qr, setQr] = useState<TableQr | null>(null)
+  const [qrImage, setQrImage] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
+  const [downloading, setDownloading] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [error, setError] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const close = () => setEditing(null)
 
@@ -27,29 +30,36 @@ export default function AdminTablesPage() {
     setEditing('new')
     setNumber('')
     setActive(true)
-    setError(false)
+    setError(null)
   }
 
   const openEdit = (table: TableInfo) => {
     setEditing(table)
     setNumber(String(table.number))
     setActive(table.isActive)
-    setError(false)
+    setError(null)
   }
 
   const save = async () => {
+    const payload = { number: Number(number) }
+    const invalid = validate(tableSchema, payload)
+    if (invalid) {
+      setError(invalid)
+      return
+    }
+
     setSaving(true)
-    setError(false)
+    setError(null)
     try {
       if (editing === 'new') {
-        await createTable(Number(number), active)
+        await createTable(payload.number, active)
       } else if (editing) {
-        await updateTable(editing.id, { number: Number(number), isActive: active })
+        await updateTable(editing.id, { ...payload, isActive: active })
       }
       close()
       tables.reload()
     } catch {
-      setError(true)
+      setError('staff.error')
     } finally {
       setSaving(false)
     }
@@ -61,16 +71,44 @@ export default function AdminTablesPage() {
       await deleteTable(table.id)
       tables.reload()
     } catch {
-      setError(true)
+      setError('staff.error')
     }
   }
 
   const openQr = async (table: TableInfo) => {
     setCopied(false)
+    setQrImage(null)
     try {
-      setQr(await getTableQr(table.id))
+      const { toDataURL } = await import('qrcode')
+      const data = await getTableQr(table.id)
+      setQr(data)
+      setQrImage(await toDataURL(data.url, { width: 512, margin: 2 }))
     } catch {
-      setError(true)
+      setError('staff.error')
+    }
+  }
+
+  const closeQr = () => {
+    setQr(null)
+    setQrImage(null)
+  }
+
+  const downloadQr = async () => {
+    if (!qr) return
+    setDownloading(true)
+    try {
+      const { toDataURL } = await import('qrcode')
+      const dataUrl = await toDataURL(qr.url, { width: 1024, margin: 2 })
+      const link = document.createElement('a')
+      link.href = dataUrl
+      link.download = `mesa-${qr.number}.png`
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+    } catch {
+      setError('staff.error')
+    } finally {
+      setDownloading(false)
     }
   }
 
@@ -80,7 +118,7 @@ export default function AdminTablesPage() {
       await navigator.clipboard.writeText(qr.url)
       setCopied(true)
     } catch {
-      setError(true)
+      setError('staff.error')
     }
   }
 
@@ -157,7 +195,7 @@ export default function AdminTablesPage() {
             <Button variant="secondary" onClick={close}>
               {t('staff.admin.cancel')}
             </Button>
-            <Button onClick={() => void save()} disabled={saving || number.trim().length === 0}>
+            <Button onClick={() => void save()} disabled={saving}>
               {saving ? t('staff.admin.saving') : t('staff.admin.save')}
             </Button>
           </>
@@ -176,7 +214,7 @@ export default function AdminTablesPage() {
           <Checkbox label={t('staff.admin.tables.active')} checked={active} onChange={setActive} />
           {error && (
             <p role="alert" className="text-sm text-rose-700">
-              {t('staff.error')}
+              {t(error)}
             </p>
           )}
         </div>
@@ -185,22 +223,32 @@ export default function AdminTablesPage() {
       <Dialog
         open={qr !== null}
         onOpenChange={(open) => {
-          if (!open) setQr(null)
+          if (!open) closeQr()
         }}
         title={qr ? t('staff.kds.table', { number: qr.number }) : ''}
         footer={
           <>
-            <Button variant="secondary" onClick={() => setQr(null)}>
+            <Button variant="secondary" onClick={closeQr}>
               {t('common.close')}
             </Button>
-            <Button onClick={() => void copyUrl()}>
+            <Button variant="secondary" onClick={() => void copyUrl()}>
               {copied ? t('staff.admin.copied') : t('staff.admin.tables.copy')}
+            </Button>
+            <Button onClick={() => void downloadQr()} disabled={downloading || !qrImage}>
+              {t('staff.admin.tables.download')}
             </Button>
           </>
         }
       >
         <div className="space-y-3">
           <p className="text-sm text-muted">{t('staff.admin.tables.qrHint')}</p>
+          {qrImage && qr && (
+            <img
+              src={qrImage}
+              alt={t('staff.admin.tables.qrAlt', { number: qr.number })}
+              className="mx-auto w-full max-w-[16rem] rounded-xl bg-white p-3"
+            />
+          )}
           <code className="block break-all rounded-lg bg-surface p-3 text-sm">{qr?.url}</code>
           {qr && (
             <a

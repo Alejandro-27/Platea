@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { CartBar } from '@/components/CartBar'
 import { CartSheet } from '@/components/CartSheet'
 import { DishCard } from '@/components/DishCard'
+import { DishDetail } from '@/components/DishDetail'
 import { ErrorState, LoadingState } from '@/components/Feedback'
 import { MenuHeader } from '@/components/MenuHeader'
 import { useSession } from '@/hooks/useSession'
@@ -13,10 +14,20 @@ import { cn } from '@/lib/cn'
 import { readableTextColor, safeBrandColor } from '@/lib/color'
 import { priceToCents } from '@/lib/money'
 import { useCart } from '@/store/cart'
-import type { PublicMenu } from '@/types/api'
+import type { PublicDish, PublicMenu } from '@/types/api'
 import { ScanPage } from './ScanPage'
 
 type MenuState = 'loading' | 'ready' | 'error'
+type DietFilter = 'all' | 'vegetarian' | 'glutenFree' | 'spicy'
+
+const DIETS: DietFilter[] = ['all', 'vegetarian', 'glutenFree', 'spicy']
+
+const DIET_KEY: Record<DietFilter, string> = {
+  all: 'menu.all',
+  vegetarian: 'menu.vegetarian',
+  glutenFree: 'menu.glutenFree',
+  spicy: 'menu.spicy',
+}
 
 function CategoryChip({
   active,
@@ -56,6 +67,8 @@ export default function MenuPage() {
   const [reloadKey, setReloadKey] = useState(0)
   const [query, setQuery] = useState('')
   const [activeCategory, setActiveCategory] = useState('all')
+  const [diet, setDiet] = useState<DietFilter>('all')
+  const [detail, setDetail] = useState<PublicDish | null>(null)
   const [cartOpen, setCartOpen] = useState(false)
 
   const lines = useCart((state) => state.lines)
@@ -98,22 +111,28 @@ export default function MenuPage() {
   const filteredCategories = useMemo(() => {
     if (!menu) return []
     const term = query.trim().toLowerCase()
+    const matchesDiet = (dish: PublicDish) =>
+      diet === 'all' ||
+      (diet === 'vegetarian' && dish.isVegetarian) ||
+      (diet === 'glutenFree' && dish.isGlutenFree) ||
+      (diet === 'spicy' && dish.isSpicy)
 
     return menu.categories
       .map((category) => ({
         ...category,
         dishes: category.dishes.filter(
           (dish) =>
-            term.length === 0 ||
-            dish.name.toLowerCase().includes(term) ||
-            (dish.description ?? '').toLowerCase().includes(term)
+            matchesDiet(dish) &&
+            (term.length === 0 ||
+              dish.name.toLowerCase().includes(term) ||
+              (dish.description ?? '').toLowerCase().includes(term))
         ),
       }))
       .filter(
         (category) =>
           category.dishes.length > 0 && (activeCategory === 'all' || category.id === activeCategory)
       )
-  }, [menu, query, activeCategory])
+  }, [menu, query, activeCategory, diet])
 
   if (!tenantId || !tableId) return <ScanPage />
 
@@ -166,13 +185,25 @@ export default function MenuPage() {
           </div>
         </div>
 
+        <div
+          className="mt-3 flex gap-2 overflow-x-auto pb-1"
+          role="group"
+          aria-label={t('menu.filters')}
+        >
+          {DIETS.map((value) => (
+            <CategoryChip key={value} active={diet === value} onClick={() => setDiet(value)}>
+              {t(DIET_KEY[value])}
+            </CategoryChip>
+          ))}
+        </div>
+
         <div className="sticky top-16 z-20 -mx-4 mt-3 overflow-x-auto bg-surface px-4 py-2">
           <div className="flex gap-2">
             <CategoryChip
               active={activeCategory === 'all'}
               onClick={() => setActiveCategory('all')}
             >
-              {t('menu.all')}
+              {t('menu.allCategories')}
             </CategoryChip>
             {menu.categories.map((category) => (
               <CategoryChip
@@ -199,7 +230,7 @@ export default function MenuPage() {
                 </h2>
                 <div className="grid gap-3 md:grid-cols-2">
                   {category.dishes.map((dish) => (
-                    <DishCard key={dish.id} dish={dish} />
+                    <DishCard key={dish.id} dish={dish} onSelect={setDetail} />
                   ))}
                 </div>
               </section>
@@ -212,6 +243,7 @@ export default function MenuPage() {
         <CartBar count={count} totalCents={totalCents} onOpen={() => setCartOpen(true)} />
       )}
       <CartSheet open={cartOpen} onOpenChange={setCartOpen} sessionId={sessionState.session.id} />
+      {detail && <DishDetail key={detail.id} dish={detail} onClose={() => setDetail(null)} />}
     </div>
   )
 }

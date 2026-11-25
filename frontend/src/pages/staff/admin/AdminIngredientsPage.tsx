@@ -8,6 +8,7 @@ import { Dialog } from '@/components/ui/Dialog'
 import { Field, Input } from '@/components/ui/Form'
 import { useAsync } from '@/hooks/useAsync'
 import { createIngredient, deleteIngredient, listIngredients, updateIngredient } from '@/lib/staff'
+import { ingredientSchema, validate } from '@/lib/schemas'
 import type { Ingredient } from '@/types/api'
 
 export default function AdminIngredientsPage() {
@@ -20,7 +21,7 @@ export default function AdminIngredientsPage() {
   const [minStock, setMinStock] = useState('0')
   const [costPerUnit, setCostPerUnit] = useState('')
   const [saving, setSaving] = useState(false)
-  const [error, setError] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const close = () => setEditing(null)
 
@@ -31,7 +32,7 @@ export default function AdminIngredientsPage() {
     setCurrentStock('0')
     setMinStock('0')
     setCostPerUnit('')
-    setError(false)
+    setError(null)
   }
 
   const openEdit = (ingredient: Ingredient) => {
@@ -41,12 +42,10 @@ export default function AdminIngredientsPage() {
     setCurrentStock(String(Number(ingredient.currentStock)))
     setMinStock(String(Number(ingredient.minStock)))
     setCostPerUnit(ingredient.costPerUnit ? String(Number(ingredient.costPerUnit)) : '')
-    setError(false)
+    setError(null)
   }
 
   const save = async () => {
-    setSaving(true)
-    setError(false)
     const payload = {
       name,
       unit,
@@ -54,6 +53,14 @@ export default function AdminIngredientsPage() {
       minStock: Number(minStock),
       costPerUnit: costPerUnit.trim() === '' ? null : Number(costPerUnit),
     }
+    const invalid = validate(ingredientSchema, payload)
+    if (invalid) {
+      setError(invalid)
+      return
+    }
+
+    setSaving(true)
+    setError(null)
 
     try {
       if (editing === 'new') {
@@ -64,7 +71,7 @@ export default function AdminIngredientsPage() {
       close()
       ingredients.reload()
     } catch {
-      setError(true)
+      setError('staff.error')
     } finally {
       setSaving(false)
     }
@@ -76,7 +83,7 @@ export default function AdminIngredientsPage() {
       await deleteIngredient(ingredient.id)
       ingredients.reload()
     } catch {
-      setError(true)
+      setError('staff.error')
     }
   }
 
@@ -150,7 +157,7 @@ export default function AdminIngredientsPage() {
             <Button variant="secondary" onClick={close}>
               {t('staff.admin.cancel')}
             </Button>
-            <Button onClick={() => void save()} disabled={saving || name.trim().length === 0}>
+            <Button onClick={() => void save()} disabled={saving}>
               {saving ? t('staff.admin.saving') : t('staff.admin.save')}
             </Button>
           </>
@@ -191,7 +198,7 @@ export default function AdminIngredientsPage() {
           </Field>
           {error && (
             <p role="alert" className="text-sm text-rose-700">
-              {t('staff.error')}
+              {t(error)}
             </p>
           )}
         </div>

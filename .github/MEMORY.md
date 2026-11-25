@@ -143,7 +143,7 @@ Módulos del MVP:
   - Estado del pedido en tiempo real con Socket.io (`order:updated`), i18n ES/EN y tema con los colores del tenant.
 - **Vistas de staff implementadas (Fase 2)**:
   - `/login` autentica al personal y guarda el JWT en `localStorage`; las rutas se protegen por rol.
-  - `/kitchen` (KDS): tablero `PENDING / PREPARING / READY` en tiempo real, avance de estado y alerta sonora opcional.
+  - `/kds` (KDS): tablero `PENDING / PREPARING / READY` en tiempo real, avance de estado por pedido y por ítem, y alerta sonora opcional. `/kitchen` redirige a `/kds`.
   - `/waiter`: pedidos agrupados por mesa, con «marcar servido» cuando el pedido está `READY`.
   - `/admin`: resumen, CRUD de platos con receta y subida de imagen, categorías, mesas + enlace QR, inventario, historial de pedidos, usuarios y ajustes del restaurante.
   - Pendiente: consola visual de Super Admin y UI de reviews.

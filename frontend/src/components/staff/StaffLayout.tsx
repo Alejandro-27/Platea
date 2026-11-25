@@ -18,14 +18,14 @@ const NAV: Record<UserRole, Array<{ to: string; key: string }>> = {
     { to: '/admin/orders', key: 'staff.nav.orders' },
     { to: '/admin/users', key: 'staff.nav.users' },
     { to: '/admin/settings', key: 'staff.nav.settings' },
-    { to: '/kitchen', key: 'staff.nav.kitchen' },
+    { to: '/kds', key: 'staff.nav.kitchen' },
     { to: '/waiter', key: 'staff.nav.waiter' },
   ],
   STAFF: [
     { to: '/waiter', key: 'staff.nav.waiter' },
-    { to: '/kitchen', key: 'staff.nav.kitchen' },
+    { to: '/kds', key: 'staff.nav.kitchen' },
   ],
-  KITCHEN: [{ to: '/kitchen', key: 'staff.nav.kitchen' }],
+  KITCHEN: [{ to: '/kds', key: 'staff.nav.kitchen' }],
   SUPER_ADMIN: [],
 }
 

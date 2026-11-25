@@ -5,11 +5,11 @@ import { OrderTicket } from '@/components/kds/OrderTicket'
 import { ErrorState, LoadingState } from '@/components/Feedback'
 import { StaffLayout } from '@/components/staff/StaffLayout'
 import { Button } from '@/components/ui/Button'
-import { listOrders, updateOrderStatus } from '@/lib/staff'
+import { listOrders, updateItemStatus, updateOrderStatus } from '@/lib/staff'
 import { createStaffSocket } from '@/lib/socket'
 import { playChime } from '@/lib/sound'
 import { useAuth } from '@/store/auth'
-import type { Order, OrderStatus } from '@/types/api'
+import type { Order, OrderItem, OrderItemStatus, OrderStatus } from '@/types/api'
 
 const COLUMNS: OrderStatus[] = ['PENDING', 'PREPARING', 'READY']
 
@@ -23,6 +23,7 @@ export default function KitchenPage() {
   const [error, setError] = useState(false)
   const [sound, setSound] = useState(true)
   const [busyId, setBusyId] = useState<string | null>(null)
+  const [busyItemId, setBusyItemId] = useState<string | null>(null)
 
   const soundRef = useRef(sound)
   useEffect(() => {
@@ -101,6 +102,17 @@ export default function KitchenPage() {
     }
   }
 
+  const advanceItem = async (order: Order, item: OrderItem, status: OrderItemStatus) => {
+    setBusyItemId(item.id)
+    try {
+      upsert(await updateItemStatus(order.id, item.id, status))
+    } catch {
+      setError(true)
+    } finally {
+      setBusyItemId(null)
+    }
+  }
+
   return (
     <StaffLayout
       title={t('staff.kds.title')}
@@ -153,7 +165,9 @@ export default function KitchenPage() {
                       key={order.id}
                       order={order}
                       busy={busyId === order.id}
+                      busyItemId={busyItemId}
                       onAdvance={(next) => void advance(order, next)}
+                      onAdvanceItem={(item, next) => void advanceItem(order, item, next)}
                     />
                   ))
                 )}
