@@ -14,7 +14,8 @@ export default {
         muted: 'var(--muted)',
       },
       fontFamily: {
-        sans: ['system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
+        sans: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
+        playfair: ['Playfair Display', 'serif'],
       },
       accentColor: {
         brand: 'var(--brand)',

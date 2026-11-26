@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Volume2, VolumeX } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Volume2, VolumeX, Utensils } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { OrderTicket } from '@/components/kds/OrderTicket'
 import { ErrorState, LoadingState } from '@/components/Feedback'
 import { StaffLayout } from '@/components/staff/StaffLayout'
 import { Button } from '@/components/ui/Button'
+import { cn } from '@/lib/cn'
 import { listOrders, updateItemStatus, updateOrderStatus } from '@/lib/staff'
 import { createStaffSocket } from '@/lib/socket'
 import { playChime } from '@/lib/sound'
@@ -12,6 +14,18 @@ import { useAuth } from '@/store/auth'
 import type { Order, OrderItem, OrderItemStatus, OrderStatus } from '@/types/api'
 
 const COLUMNS: OrderStatus[] = ['PENDING', 'PREPARING', 'READY']
+
+const COLUMN_LABEL: Partial<Record<OrderStatus, string>> = {
+  PENDING: 'staff.kds.columnPending',
+  PREPARING: 'staff.kds.columnPreparing',
+  READY: 'staff.kds.columnReady',
+}
+
+const COLUMN_COLOR: Partial<Record<OrderStatus, string>> = {
+  PENDING: 'text-amber-600 border-amber-200 bg-amber-50',
+  PREPARING: 'text-blue-600 border-blue-200 bg-blue-50',
+  READY: 'text-emerald-600 border-emerald-200 bg-emerald-50',
+}
 
 export default function KitchenPage() {
   const { t } = useTranslation()
@@ -113,6 +127,9 @@ export default function KitchenPage() {
     }
   }
 
+  const pendingCount = orders.filter((o) => o.status === 'PENDING').length
+  const totalCount = orders.length
+
   return (
     <StaffLayout
       title={t('staff.kds.title')}
@@ -131,16 +148,61 @@ export default function KitchenPage() {
           ) : (
             <VolumeX className="h-4 w-4" aria-hidden />
           )}
-          {sound ? t('staff.kds.soundOn') : t('staff.kds.soundOff')}
+          <span className="ml-1.5 text-sm">
+            {sound ? t('staff.kds.soundOn') : t('staff.kds.soundOff')}
+          </span>
         </Button>
       }
     >
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-wrap gap-2">
+          {COLUMNS.map((status) => (
+            <span
+              key={status}
+              className={cn(
+                'inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium',
+                COLUMN_COLOR[status]
+              )}
+            >
+              {t(COLUMN_LABEL[status] ?? 'staff.kds.columnPending')}:{' '}
+              <span className="font-semibold">
+                {orders.filter((o) => o.status === status).length}
+              </span>
+            </span>
+          ))}
+        </div>
+        {pendingCount > 0 && (
+          <motion.span
+            animate={{ scale: [1, 1.15, 1] }}
+            transition={{ repeat: Infinity, duration: 2 }}
+            className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700 animate-pulse"
+          >
+            <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" aria-hidden />
+            {pendingCount} pendiente{pendingCount !== 1 ? 's' : ''}
+          </motion.span>
+        )}
+      </div>
+
       {loading ? (
         <LoadingState label={t('common.loading')} />
       ) : error ? (
         <ErrorState title={t('staff.error')} />
+      ) : totalCount === 0 ? (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col items-center justify-center py-20 text-center"
+        >
+          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-slate-100 mb-6 text-slate-400">
+            <Utensils className="h-10 w-10" aria-hidden />
+          </div>
+          <h3 className="font-playfair font-bold text-lg text-slate-900 mb-2">
+            {t('staff.kds.emptyTitle')}
+          </h3>
+          <p className="text-sm text-slate-500 max-w-xs mx-auto">{t('staff.kds.empty')}</p>
+        </motion.div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {COLUMNS.map((status) => {
             const column = orders
               .filter((order) => order.status === status)
@@ -148,29 +210,50 @@ export default function KitchenPage() {
 
             return (
               <section key={status} aria-label={t(`order.status.${status}`)} className="space-y-3">
-                <h2 className="flex items-center justify-between text-sm font-semibold uppercase tracking-wide text-muted">
+                <h2 className="flex items-center justify-between text-sm font-semibold uppercase tracking-wider text-slate-400">
                   {t(`order.status.${status}`)}
-                  <span className="rounded-full bg-surface px-2 py-0.5 text-xs">
+                  <span
+                    className={cn(
+                      'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold',
+                      COLUMN_COLOR[status]
+                    )}
+                  >
                     {column.length}
                   </span>
                 </h2>
 
-                {column.length === 0 ? (
-                  <p className="rounded-xl border border-dashed border-line px-3 py-6 text-center text-sm text-muted">
-                    {t('staff.kds.empty')}
-                  </p>
-                ) : (
-                  column.map((order) => (
-                    <OrderTicket
-                      key={order.id}
-                      order={order}
-                      busy={busyId === order.id}
-                      busyItemId={busyItemId}
-                      onAdvance={(next) => void advance(order, next)}
-                      onAdvanceItem={(item, next) => void advanceItem(order, item, next)}
-                    />
-                  ))
-                )}
+                <AnimatePresence mode="wait">
+                  {column.length === 0 ? (
+                    <motion.div
+                      key="empty"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="rounded-xl border border-dashed border-slate-200 px-4 py-6 text-center text-sm text-slate-400"
+                    >
+                      {t('staff.kds.empty')}
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="list"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="space-y-2"
+                    >
+                      {column.map((order) => (
+                        <OrderTicket
+                          key={order.id}
+                          order={order}
+                          busy={busyId === order.id}
+                          busyItemId={busyItemId}
+                          onAdvance={(next) => void advance(order, next)}
+                          onAdvanceItem={(item, next) => void advanceItem(order, item, next)}
+                        />
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </section>
             )
           })}

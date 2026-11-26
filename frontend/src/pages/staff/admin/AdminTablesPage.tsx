@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Pencil, Plus, QrCode, Trash2 } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { Pencil, Plus, QrCode, Table as TableIcon, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { ErrorState, LoadingState } from '@/components/Feedback'
 import { StaffLayout } from '@/components/staff/StaffLayout'
@@ -126,10 +127,15 @@ export default function AdminTablesPage() {
     <StaffLayout
       title={t('staff.nav.tables')}
       actions={
-        <Button onClick={openNew}>
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.97 }}
+          onClick={openNew}
+          className="flex items-center gap-2 px-4 py-3 text-sm font-semibold rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm hover:shadow-md transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
+        >
           <Plus className="h-4 w-4" aria-hidden />
           {t('staff.admin.create')}
-        </Button>
+        </motion.button>
       }
     >
       {tables.status === 'loading' ? (
@@ -137,23 +143,38 @@ export default function AdminTablesPage() {
       ) : tables.status === 'error' ? (
         <ErrorState title={t('staff.error')} onRetry={tables.reload} />
       ) : tables.data.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-line px-4 py-10 text-center text-muted">
-          {t('staff.admin.empty')}
-        </p>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col items-center justify-center py-20 text-center"
+        >
+          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-slate-100 mb-6 text-slate-400">
+            <TableIcon className="h-10 w-10" aria-hidden />
+          </div>
+          <h3 className="font-playfair font-bold text-lg text-slate-900 mb-2">
+            {t('staff.admin.empty')}
+          </h3>
+          <p className="text-sm text-slate-500 max-w-xs mx-auto">Aún no hay mesas configuradas.</p>
+        </motion.div>
       ) : (
-        <ul className="space-y-2">
+        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {tables.data.map((table) => (
-            <li
+            <motion.li
               key={table.id}
-              className="flex items-center justify-between gap-3 rounded-xl bg-surface-2 p-3 shadow-card"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.05 * tables.data.indexOf(table) }}
+              className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col"
             >
-              <div>
-                <p className="font-medium">{t('staff.kds.table', { number: table.number })}</p>
-                {!table.isActive && (
-                  <p className="text-xs text-muted">{t('staff.admin.inactive')}</p>
-                )}
-              </div>
-              <div className="flex shrink-0 gap-1">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <p className="text-2xl font-playfair font-bold text-slate-900">{table.number}</p>
+                  {!table.isActive && (
+                    <span className="text-xs font-medium text-rose-600 mt-1 inline-block">
+                      {t('staff.admin.inactive')}
+                    </span>
+                  )}
+                </div>
                 <Button
                   variant="ghost"
                   size="icon"
@@ -162,6 +183,9 @@ export default function AdminTablesPage() {
                 >
                   <QrCode className="h-4 w-4" aria-hidden />
                 </Button>
+              </div>
+
+              <div className="mt-auto flex items-center justify-between gap-2 pt-4 border-t border-slate-100">
                 <Button
                   variant="ghost"
                   size="icon"
@@ -179,7 +203,7 @@ export default function AdminTablesPage() {
                   <Trash2 className="h-4 w-4 text-rose-600" aria-hidden />
                 </Button>
               </div>
-            </li>
+            </motion.li>
           ))}
         </ul>
       )}
@@ -190,18 +214,8 @@ export default function AdminTablesPage() {
           if (!open) close()
         }}
         title={editing === 'new' ? t('staff.admin.create') : t('staff.admin.edit')}
-        footer={
-          <>
-            <Button variant="secondary" onClick={close}>
-              {t('staff.admin.cancel')}
-            </Button>
-            <Button onClick={() => void save()} disabled={saving}>
-              {saving ? t('staff.admin.saving') : t('staff.admin.save')}
-            </Button>
-          </>
-        }
       >
-        <div className="space-y-3">
+        <div className="space-y-3 p-4">
           <Field label={t('staff.admin.tables.number')}>
             <Input
               type="number"
@@ -218,6 +232,18 @@ export default function AdminTablesPage() {
             </p>
           )}
         </div>
+        <div className="border-t border-slate-100 px-4 py-3 flex justify-end gap-2">
+          <Button variant="secondary" onClick={close}>
+            {t('staff.admin.cancel')}
+          </Button>
+          <Button
+            onClick={() => void save()}
+            disabled={saving}
+            className="bg-emerald-600 hover:bg-emerald-700"
+          >
+            {saving ? t('staff.admin.saving') : t('staff.admin.save')}
+          </Button>
+        </div>
       </Dialog>
 
       <Dialog
@@ -226,40 +252,32 @@ export default function AdminTablesPage() {
           if (!open) closeQr()
         }}
         title={qr ? t('staff.kds.table', { number: qr.number }) : ''}
-        footer={
-          <>
-            <Button variant="secondary" onClick={closeQr}>
-              {t('common.close')}
-            </Button>
-            <Button variant="secondary" onClick={() => void copyUrl()}>
-              {copied ? t('staff.admin.copied') : t('staff.admin.tables.copy')}
-            </Button>
-            <Button onClick={() => void downloadQr()} disabled={downloading || !qrImage}>
-              {t('staff.admin.tables.download')}
-            </Button>
-          </>
-        }
       >
-        <div className="space-y-3">
+        <div className="space-y-3 p-4">
           <p className="text-sm text-muted">{t('staff.admin.tables.qrHint')}</p>
           {qrImage && qr && (
-            <img
-              src={qrImage}
-              alt={t('staff.admin.tables.qrAlt', { number: qr.number })}
-              className="mx-auto w-full max-w-[16rem] rounded-xl bg-white p-3"
-            />
+            <div className="flex items-center justify-center">
+              <img
+                src={qrImage}
+                alt={t('staff.admin.tables.qrAlt', { number: qr.number })}
+                className="w-full max-w-[200px] rounded-xl bg-white p-3 shadow-sm"
+              />
+            </div>
           )}
-          <code className="block break-all rounded-lg bg-surface p-3 text-sm">{qr?.url}</code>
-          {qr && (
-            <a
-              href={qr.url}
-              target="_blank"
-              rel="noreferrer"
-              className="text-sm font-medium text-brand underline"
-            >
-              {t('staff.admin.tables.open')}
-            </a>
-          )}
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm">
+            <code className="block break-all text-slate-700">{qr?.url}</code>
+          </div>
+        </div>
+        <div className="border-t border-slate-100 px-4 py-3 flex justify-end gap-2">
+          <Button variant="secondary" onClick={closeQr}>
+            {t('common.close')}
+          </Button>
+          <Button variant="secondary" onClick={() => void copyUrl()} disabled={!qrImage}>
+            {copied ? t('staff.admin.copied') : t('staff.admin.tables.copy')}
+          </Button>
+          <Button onClick={() => void downloadQr()} disabled={downloading || !qrImage}>
+            {t('staff.admin.tables.download')}
+          </Button>
         </div>
       </Dialog>
     </StaffLayout>

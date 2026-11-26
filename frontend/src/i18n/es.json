@@ -1,4 +1,24 @@
 {
+  "home": {
+    "kicker": "Carta digital y pedidos en tiempo real",
+    "title": "Platea",
+    "subtitle": "Digitaliza tu restaurante. Menú por QR, pedidos a la cocina y gestión de mesas, todo desde el móvil del comensal.",
+    "ctaScan": "Escanear QR",
+    "ctaDemo": "Ver demostración",
+    "feature1": {
+      "title": "Menú sin contacto",
+      "desc": "Los comensales abren la carta escaneando el QR de su mesa, sin instalar apps ni registrarse."
+    },
+    "feature2": {
+      "title": "Pedidos en tiempo real",
+      "desc": "La cocina recibe cada pedido al instante y el comensal sigue el estado en su móvil."
+    },
+    "feature3": {
+      "title": "Gestión completa",
+      "desc": "Platos, categorías, mesas, inventario y personal desde un solo panel de administración."
+    },
+    "footer": "Platea · Carta digital para restaurantes"
+  },
   "common": {
     "loading": "Cargando…",
     "retry": "Reintentar",
@@ -83,6 +103,10 @@
       "minutes_one": "hace {{count}} min",
       "minutes_other": "hace {{count}} min",
       "empty": "Sin pedidos",
+      "emptyTitle": "Sin pedidos activos",
+      "columnPending": "Pendientes",
+      "columnPreparing": "En preparación",
+      "columnReady": "Listos",
       "soundOn": "Aviso activado",
       "soundOff": "Aviso silenciado",
       "start": "Empezar",

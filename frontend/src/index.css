@@ -24,4 +24,13 @@
   body {
     @apply bg-surface text-ink antialiased;
   }
+
+  /* Oculta scrollbar pero mantiene funcionalidad (filtros horizontales) */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
 }

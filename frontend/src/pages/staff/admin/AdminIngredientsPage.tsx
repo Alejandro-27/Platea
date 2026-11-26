@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Pencil, Plus, Trash2 } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { Pencil, Plus, Package as PackageIcon, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { ErrorState, LoadingState } from '@/components/Feedback'
 import { StaffLayout } from '@/components/staff/StaffLayout'
@@ -7,6 +8,7 @@ import { Button } from '@/components/ui/Button'
 import { Dialog } from '@/components/ui/Dialog'
 import { Field, Input } from '@/components/ui/Form'
 import { useAsync } from '@/hooks/useAsync'
+import { cn } from '@/lib/cn'
 import { createIngredient, deleteIngredient, listIngredients, updateIngredient } from '@/lib/staff'
 import { ingredientSchema, validate } from '@/lib/schemas'
 import type { Ingredient } from '@/types/api'
@@ -91,10 +93,15 @@ export default function AdminIngredientsPage() {
     <StaffLayout
       title={t('staff.nav.ingredients')}
       actions={
-        <Button onClick={openNew}>
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.97 }}
+          onClick={openNew}
+          className="flex items-center gap-2 px-4 py-3 text-sm font-semibold rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm hover:shadow-md transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
+        >
           <Plus className="h-4 w-4" aria-hidden />
           {t('staff.admin.create')}
-        </Button>
+        </motion.button>
       }
     >
       {ingredients.status === 'loading' ? (
@@ -102,27 +109,52 @@ export default function AdminIngredientsPage() {
       ) : ingredients.status === 'error' ? (
         <ErrorState title={t('staff.error')} onRetry={ingredients.reload} />
       ) : ingredients.data.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-line px-4 py-10 text-center text-muted">
-          {t('staff.admin.empty')}
-        </p>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col items-center justify-center py-20 text-center"
+        >
+          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-slate-100 mb-6 text-slate-400">
+            <PackageIcon className="h-10 w-10" aria-hidden />
+          </div>
+          <h3 className="font-playfair font-bold text-lg text-slate-900 mb-2">
+            {t('staff.admin.empty')}
+          </h3>
+          <p className="text-sm text-slate-500 max-w-xs mx-auto">
+            Aún no hay ingredientes registrados.
+          </p>
+        </motion.div>
       ) : (
-        <ul className="space-y-2">
+        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {ingredients.data.map((ingredient) => {
             const low = Number(ingredient.currentStock) <= Number(ingredient.minStock)
             return (
-              <li
+              <motion.li
                 key={ingredient.id}
-                className="flex items-center justify-between gap-3 rounded-xl bg-surface-2 p-3 shadow-card"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.05 * ingredients.data.indexOf(ingredient) }}
+                className={cn(
+                  'rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col',
+                  low ? 'border-amber-100 bg-amber-50' : ''
+                )}
               >
-                <div className="min-w-0">
-                  <p className="truncate font-medium">{ingredient.name}</p>
-                  <p className={low ? 'text-xs font-medium text-rose-600' : 'text-xs text-muted'}>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="font-medium text-slate-900 truncate">{ingredient.name}</p>
+                    {low && (
+                      <span className="text-xs font-medium text-rose-600">
+                        {t('staff.admin.ingredients.lowStock')}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-400 truncate">
                     {Number(ingredient.currentStock)} {ingredient.unit} ·{' '}
                     {t('staff.admin.ingredients.min', { value: Number(ingredient.minStock) })}
-                    {low && ` · ${t('staff.admin.ingredients.lowStock')}`}
                   </p>
                 </div>
-                <div className="flex shrink-0 gap-1">
+
+                <div className="mt-4 flex items-center justify-between gap-2">
                   <Button
                     variant="ghost"
                     size="icon"
@@ -140,7 +172,7 @@ export default function AdminIngredientsPage() {
                     <Trash2 className="h-4 w-4 text-rose-600" aria-hidden />
                   </Button>
                 </div>
-              </li>
+              </motion.li>
             )
           })}
         </ul>
@@ -152,18 +184,8 @@ export default function AdminIngredientsPage() {
           if (!open) close()
         }}
         title={editing === 'new' ? t('staff.admin.create') : t('staff.admin.edit')}
-        footer={
-          <>
-            <Button variant="secondary" onClick={close}>
-              {t('staff.admin.cancel')}
-            </Button>
-            <Button onClick={() => void save()} disabled={saving}>
-              {saving ? t('staff.admin.saving') : t('staff.admin.save')}
-            </Button>
-          </>
-        }
       >
-        <div className="space-y-3">
+        <div className="space-y-3 p-4">
           <Field label={t('staff.admin.ingredients.name')}>
             <Input value={name} onChange={(event) => setName(event.target.value)} />
           </Field>
@@ -201,6 +223,18 @@ export default function AdminIngredientsPage() {
               {t(error)}
             </p>
           )}
+        </div>
+        <div className="border-t border-slate-100 px-4 py-3 flex justify-end gap-2">
+          <Button variant="secondary" onClick={close}>
+            {t('staff.admin.cancel')}
+          </Button>
+          <Button
+            onClick={() => void save()}
+            disabled={saving}
+            className="bg-emerald-600 hover:bg-emerald-700"
+          >
+            {saving ? t('staff.admin.saving') : t('staff.admin.save')}
+          </Button>
         </div>
       </Dialog>
     </StaffLayout>

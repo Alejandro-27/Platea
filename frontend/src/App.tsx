@@ -5,6 +5,7 @@ import { RequireRole } from './components/RequireRole'
 import MenuPage from './pages/MenuPage'
 import OrderStatusPage from './pages/OrderStatusPage'
 import { ScanPage } from './pages/ScanPage'
+import { HomePage } from './pages/HomePage'
 
 // El comensal carga su menú sin descargar el panel, zod ni el KDS.
 const AdminCategoriesPage = lazy(() => import('./pages/staff/admin/AdminCategoriesPage'))
@@ -33,7 +34,7 @@ export default function App() {
     <BrowserRouter>
       <Suspense fallback={<RouteFallback />}>
         <Routes>
-          <Route path="/" element={<ScanPage />} />
+          <Route path="/" element={<HomePage />} />
           <Route path="/menu/:tenantId" element={<MenuPage />} />
           <Route path="/order/:orderId" element={<OrderStatusPage />} />
 

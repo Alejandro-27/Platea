@@ -1,4 +1,24 @@
 {
+  "home": {
+    "kicker": "Digital menu and real-time orders",
+    "title": "Platea",
+    "subtitle": "Digitize your restaurant. QR menu, kitchen orders and table management, all from the customer's phone.",
+    "ctaScan": "Scan QR",
+    "ctaDemo": "See demo",
+    "feature1": {
+      "title": "Contactless menu",
+      "desc": "Customers open the menu by scanning the table's QR code, without installing apps or registering."
+    },
+    "feature2": {
+      "title": "Real-time orders",
+      "desc": "The kitchen receives every order instantly and the customer follows the status on their phone."
+    },
+    "feature3": {
+      "title": "Complete management",
+      "desc": "Dishes, categories, tables, inventory and staff from a single admin panel."
+    },
+    "footer": "Platea · Digital menu for restaurants"
+  },
   "common": {
     "loading": "Loading…",
     "retry": "Try again",
@@ -83,6 +103,10 @@
       "minutes_one": "{{count}} min ago",
       "minutes_other": "{{count}} min ago",
       "empty": "No orders",
+      "emptyTitle": "No active orders",
+      "columnPending": "Pending",
+      "columnPreparing": "Preparing",
+      "columnReady": "Ready",
       "soundOn": "Alerts on",
       "soundOff": "Alerts muted",
       "start": "Start",

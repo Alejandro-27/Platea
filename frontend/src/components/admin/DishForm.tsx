@@ -1,10 +1,12 @@
 import { useState } from 'react'
-import { Plus, Trash2, Upload } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { Flame, Leaf, Plus, Trash2, Upload, WheatOff } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/Button'
 import { Checkbox, Field, Input, Select, Textarea } from '@/components/ui/Form'
 import { createDish, updateDish, uploadImage } from '@/lib/staff'
 import { dishSchema, validate } from '@/lib/schemas'
+import { cn } from '@/lib/cn'
 import type { AdminDish, Category, DishInput, Ingredient } from '@/types/api'
 
 interface RecipeRow {
@@ -19,6 +21,32 @@ interface DishFormProps {
   onDone: () => void
   onCancel: () => void
 }
+
+const TAGS: Array<{
+  key: 'spicy' | 'vegetarian' | 'glutenFree'
+  label: string
+  Icon: React.ComponentType<{ className?: string }>
+  color: string
+}> = [
+  {
+    key: 'spicy',
+    label: 'menu.spicy',
+    Icon: Flame,
+    color: 'text-rose-600 bg-rose-50 border-rose-100',
+  },
+  {
+    key: 'vegetarian',
+    label: 'menu.vegetarian',
+    Icon: Leaf,
+    color: 'text-emerald-600 bg-emerald-50 border-emerald-100',
+  },
+  {
+    key: 'glutenFree',
+    label: 'menu.glutenFree',
+    Icon: WheatOff,
+    color: 'text-amber-600 bg-amber-50 border-amber-100',
+  },
+]
 
 export function DishForm({ dish, categories, ingredients, onDone, onCancel }: DishFormProps) {
   const { t } = useTranslation()
@@ -108,6 +136,18 @@ export function DishForm({ dish, categories, ingredients, onDone, onCancel }: Di
     }
   }
 
+  const toggleTag = (key: 'spicy' | 'vegetarian' | 'glutenFree') => {
+    if (key === 'spicy') setSpicy(!spicy)
+    if (key === 'vegetarian') setVegetarian(!vegetarian)
+    if (key === 'glutenFree') setGlutenFree(!glutenFree)
+  }
+
+  const isTagActive = (key: 'spicy' | 'vegetarian' | 'glutenFree') => {
+    if (key === 'spicy') return spicy
+    if (key === 'vegetarian') return vegetarian
+    return glutenFree
+  }
+
   return (
     <div className="space-y-3">
       <Field label={t('staff.admin.dishes.name')}>
@@ -116,7 +156,7 @@ export function DishForm({ dish, categories, ingredients, onDone, onCancel }: Di
 
       <Field label={t('staff.admin.dishes.description')}>
         <Textarea
-          rows={2}
+          rows={3}
           value={description}
           onChange={(event) => setDescription(event.target.value)}
         />
@@ -146,14 +186,21 @@ export function DishForm({ dish, categories, ingredients, onDone, onCancel }: Di
 
       <Field label={t('staff.admin.dishes.image')}>
         <div className="flex items-center gap-3">
-          {imageUrl ? (
-            <img src={imageUrl} alt="" className="h-14 w-14 rounded-lg object-cover" />
-          ) : (
-            <span className="flex h-14 w-14 items-center justify-center rounded-lg bg-surface text-xs text-muted">
-              —
-            </span>
-          )}
-          <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-line bg-surface-2 px-3 py-2 text-sm font-medium hover:bg-surface">
+          <div className="relative">
+            {imageUrl ? (
+              <img src={imageUrl} alt="" className="h-16 w-16 rounded-xl object-cover shadow-sm" />
+            ) : (
+              <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-slate-50 text-slate-400 text-xl font-semibold">
+                {name.slice(0, 1).toUpperCase() || '—'}
+              </div>
+            )}
+            {uploading && (
+              <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-black/40">
+                <span className="text-sm text-white">Subiendo…</span>
+              </div>
+            )}
+          </div>
+          <label className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-line bg-slate-50 px-3 py-2 text-sm font-medium text-slate-600 hover:bg-emerald-50 hover:border-emerald-200 hover:text-emerald-700 transition-colors">
             <Upload className="h-4 w-4" aria-hidden />
             {uploading ? t('staff.admin.dishes.uploading') : t('staff.admin.dishes.upload')}
             <input
@@ -180,27 +227,62 @@ export function DishForm({ dish, categories, ingredients, onDone, onCancel }: Di
         />
       </Field>
 
-      <div className="grid grid-cols-2 gap-2">
-        <Checkbox
-          label={t('staff.admin.dishes.available')}
-          checked={available}
-          onChange={setAvailable}
-        />
-        <Checkbox
-          label={t('staff.admin.dishes.outOfStock')}
-          checked={outOfStock}
-          onChange={setOutOfStock}
-        />
-        <Checkbox label={t('menu.spicy')} checked={spicy} onChange={setSpicy} />
-        <Checkbox label={t('menu.vegetarian')} checked={vegetarian} onChange={setVegetarian} />
-        <Checkbox label={t('menu.glutenFree')} checked={glutenFree} onChange={setGlutenFree} />
+      {/* Etiquetas de dieta */}
+      <div className="space-y-2">
+        <p className="text-sm font-semibold text-slate-700">{t('staff.admin.dishes.available')}</p>
+        <div className="grid grid-cols-3 gap-2">
+          {TAGS.map((tag) => {
+            const active = isTagActive(tag.key)
+            const Icon = tag.Icon as React.ComponentType<{ className?: string }>
+            return (
+              <button
+                key={tag.key}
+                type="button"
+                onClick={() => toggleTag(tag.key)}
+                aria-pressed={active}
+                className={cn(
+                  'flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600',
+                  active
+                    ? cn(tag.color, 'border-transparent shadow-sm')
+                    : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                )}
+              >
+                <Icon className="h-4 w-4 shrink-0" aria-hidden />
+                {t(tag.label)}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <Checkbox
+            label={t('staff.admin.dishes.available')}
+            checked={available}
+            onChange={setAvailable}
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <Checkbox
+            label={t('staff.admin.dishes.outOfStock')}
+            checked={outOfStock}
+            onChange={setOutOfStock}
+          />
+        </div>
       </div>
 
       <div>
-        <p className="text-sm font-medium">{t('staff.admin.dishes.recipe')}</p>
+        <p className="text-sm font-semibold text-slate-700">{t('staff.admin.dishes.recipe')}</p>
         <div className="mt-2 space-y-2">
           {recipe.map((row, index) => (
-            <div key={index} className="flex items-center gap-2">
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              className="flex items-center gap-2"
+            >
               <Select
                 aria-label={t('staff.admin.dishes.ingredient')}
                 value={row.ingredientId}
@@ -240,13 +322,12 @@ export function DishForm({ dish, categories, ingredients, onDone, onCancel }: Di
               >
                 <Trash2 className="h-4 w-4 text-rose-600" aria-hidden />
               </Button>
-            </div>
+            </motion.div>
           ))}
         </div>
-        <Button
-          variant="secondary"
-          size="sm"
-          className="mt-2"
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.97 }}
           disabled={ingredients.length === 0}
           onClick={() =>
             setRecipe((rows) => [
@@ -254,10 +335,11 @@ export function DishForm({ dish, categories, ingredients, onDone, onCancel }: Di
               { ingredientId: ingredients[0]?.id ?? '', quantity: '1' },
             ])
           }
+          className="mt-2 flex items-center gap-2 text-sm font-semibold rounded-xl border border-line bg-slate-50 px-3 py-2 text-slate-600 hover:bg-emerald-50 hover:border-emerald-200 hover:text-emerald-700 disabled:opacity-50 disabled:pointer-events-none transition-colors"
         >
           <Plus className="h-4 w-4" aria-hidden />
           {t('staff.admin.dishes.addIngredient')}
-        </Button>
+        </motion.button>
       </div>
 
       {error && (
@@ -266,11 +348,15 @@ export function DishForm({ dish, categories, ingredients, onDone, onCancel }: Di
         </p>
       )}
 
-      <div className="flex justify-end gap-2 border-t border-line pt-3">
+      <div className="flex justify-end gap-2 border-t border-slate-100 pt-3">
         <Button variant="secondary" onClick={onCancel}>
           {t('staff.admin.cancel')}
         </Button>
-        <Button onClick={() => void save()} disabled={saving || uploading}>
+        <Button
+          onClick={() => void save()}
+          disabled={saving || uploading}
+          className="bg-emerald-600 hover:bg-emerald-700"
+        >
           {saving ? t('staff.admin.saving') : t('staff.admin.save')}
         </Button>
       </div>
