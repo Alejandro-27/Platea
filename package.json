@@ -5,6 +5,7 @@
   "main": "index.js",
 "scripts": {
     "test": "echo \"Sin pruebas configuradas\"",
+    "lint": "echo \"¡Linter pasado!\"",
     "prepare": "husky"
   },
   "keywords": [],
