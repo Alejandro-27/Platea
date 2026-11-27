@@ -17,7 +17,7 @@ export function CartBar({ count, totalCents, onOpen }: CartBarProps) {
       initial={{ y: 100 }}
       animate={{ y: 0 }}
       exit={{ y: 100 }}
-      transition={{ duration: 0.25, ease: 'easeOut' }}
+      transition={{ type: 'spring', stiffness: 400, damping: 25 }}
       className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200/60 bg-white/80 backdrop-blur-lg supports-[backdrop-filter]:bg-white/60 px-4 pb-[calc(env(safe-area-inset-bottom)_+_1rem)] pt-3.5 shadow-xl"
     >
       <div className="mx-auto max-w-3xl">
@@ -25,7 +25,7 @@ export function CartBar({ count, totalCents, onOpen }: CartBarProps) {
           whileHover={{ y: -2 }}
           whileTap={{ scale: 0.97 }}
           whileFocus={{ scale: 0.97 }}
-          className="w-full justify-between rounded-2xl border border-emerald-100 bg-emerald-600 text-white shadow-lg hover:shadow-xl hover:bg-emerald-700 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
+          className="w-full justify-between rounded-xl border border-emerald-100 bg-emerald-600 text-white shadow-lg hover:shadow-xl hover:bg-emerald-700 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
           onClick={onOpen}
         >
           <span className="inline-flex items-center gap-2">

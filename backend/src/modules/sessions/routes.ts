@@ -8,8 +8,8 @@ const SESSION_TTL_MS = 4 * 60 * 60 * 1000
 
 const createSchema = z.object({
   tenantId: z.string().min(1),
-  tableId: z.string().min(1),
-  qrCode: z.string().min(1).optional(),
+  tableId: z.string().min(1).optional(),
+  tableNumber: z.number().int().positive().optional(),
   deviceInfo: z.string().max(300).optional(),
 })
 
@@ -23,20 +23,74 @@ export default async function sessionsRoutes(app: FastifyInstance): Promise<void
     async (request, reply) => {
       const body = parse(createSchema, request.body)
 
-      const table = await prisma.table.findFirst({
-        where: { id: body.tableId, tenantId: body.tenantId, isActive: true },
-        include: { tenant: { select: { isActive: true } } },
-      })
+      // Detectar si tableId es un número puro (el frontend envía el número de mesa,
+      // no el ID cuid cuando navega desde el landing de demostración).
+      const isTableNumber = /^\d+$/.test(body.tableId ?? '')
 
-      const invalidQr = body.qrCode !== undefined && table !== null && body.qrCode !== table.qrCode
-      if (!table || !table.tenant.isActive || invalidQr) {
-        throw notFound('Mesa')
+      // Validar que el tenant exista y esté activo.
+      const tenant = await prisma.tenant.findUnique({
+        where: { id: body.tenantId },
+        select: { id: true, isActive: true },
+      })
+      if (!tenant || !tenant.isActive) {
+        throw notFound('Restaurante')
+      }
+
+      // Resolver tableId: puede venir directamente como ID cuid, como número de mesa,
+      // o a través de tableNumber.
+      let resolvedTableId: string | undefined = body.tableId
+      let tableNumber: number | undefined
+
+      if (isTableNumber) {
+        const table = await prisma.table.findFirst({
+          where: {
+            tenantId: body.tenantId,
+            number: Number(body.tableId),
+            isActive: true,
+          },
+          select: { id: true, number: true },
+        })
+        if (!table) {
+          throw notFound('Mesa')
+        }
+        resolvedTableId = table.id
+        tableNumber = table.number
+      } else if (!resolvedTableId && body.tableNumber !== undefined) {
+        const table = await prisma.table.findFirst({
+          where: {
+            tenantId: body.tenantId,
+            number: body.tableNumber,
+            isActive: true,
+          },
+          select: { id: true, number: true },
+        })
+        if (!table) {
+          throw notFound('Mesa')
+        }
+        resolvedTableId = table.id
+        tableNumber = table.number
+      }
+
+      // Si se proporciona tableId directamente (no es número puro), validar que exista y esté activa.
+      if (resolvedTableId && !isTableNumber) {
+        const table = await prisma.table.findUnique({
+          where: { id: resolvedTableId },
+          select: { id: true, number: true, isActive: true, tenantId: true },
+        })
+        if (!table || table.tenantId !== body.tenantId || !table.isActive) {
+          throw notFound('Mesa')
+        }
+        tableNumber = table.number
+      }
+
+      if (!resolvedTableId) {
+        throw new AppError(422, 'VALIDATION_ERROR', 'Se requiere tableId o tableNumber')
       }
 
       const session = await prisma.session.create({
         data: {
           tenantId: body.tenantId,
-          tableId: table.id,
+          tableId: resolvedTableId,
           deviceInfo: body.deviceInfo,
           expiresAt: new Date(Date.now() + SESSION_TTL_MS),
         },
@@ -44,7 +98,7 @@ export default async function sessionsRoutes(app: FastifyInstance): Promise<void
       })
 
       return reply.code(201).send({
-        data: { ...session, table: { id: table.id, number: table.number } },
+        data: { ...session, table: { number: tableNumber ?? 0 } },
       })
     }
   )

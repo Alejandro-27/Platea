@@ -4,6 +4,7 @@ import type {
   Order,
   PaginationMeta,
   PublicMenu,
+  PublicTenant,
   Session,
 } from '../types/api'
 
@@ -93,6 +94,10 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 
 export function getMenu(tenantId: string): Promise<PublicMenu> {
   return request<PublicMenu>(`/api/public/tenants/${encodeURIComponent(tenantId)}/menu`)
+}
+
+export function getTenantBySlug(slug: string): Promise<PublicTenant> {
+  return request<PublicTenant>(`/api/public/tenants/${encodeURIComponent(slug)}`)
 }
 
 export function createSession(tenantId: string, tableId: string): Promise<Session> {

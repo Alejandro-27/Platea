@@ -42,13 +42,13 @@ export function DishDetail({ dish, onClose }: DishDetailProps) {
       }}
       title={dish.name}
     >
-      <div className="space-y-6 p-6">
-        {/* Imagen grande */}
+      <div className="space-y-6 p-6 rounded-3xl shadow-xl border border-line">
+        {/* Imagen grande con morphing */}
         {dish.imageUrl ? (
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="relative aspect-video overflow-hidden rounded-xl bg-slate-50 mx-auto max-w-[520px]"
+            className="relative aspect-video overflow-hidden rounded-xl bg-slate-50 mx-auto max-w-[520px] shadow-lg"
           >
             <img
               src={dish.imageUrl}
@@ -65,7 +65,7 @@ export function DishDetail({ dish, onClose }: DishDetailProps) {
 
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-lg font-semibold text-ink">
+            <p className="text-lg font-semibold text-slate-900">
               {formatMoney(dish.price, i18n.language)}
             </p>
             {dish.reviewCount > 0 && (
@@ -112,7 +112,7 @@ export function DishDetail({ dish, onClose }: DishDetailProps) {
                 </button>
                 <span
                   aria-live="polite"
-                  className="min-w-8 text-center text-sm font-semibold text-ink"
+                  className="min-w-8 text-center text-sm font-semibold text-slate-900"
                 >
                   {line?.quantity ?? 1}
                 </span>
@@ -138,7 +138,7 @@ export function DishDetail({ dish, onClose }: DishDetailProps) {
             </div>
           </>
         ) : (
-          <p className="rounded-lg bg-rose-50 px-4 py-3 text-sm font-medium text-rose-600">
+          <p className="rounded-lg border border-rose-100 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-600">
             {t('menu.outOfStock')}
           </p>
         )}

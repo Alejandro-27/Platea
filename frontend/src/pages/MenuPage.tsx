@@ -5,7 +5,8 @@ import { useTranslation } from 'react-i18next'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { CartBar } from '@/components/CartBar'
 import { CartSheet } from '@/components/CartSheet'
-import { DishCard } from '@/components/DishCard'
+import { CategorySection } from '@/components/menu/CategorySection'
+import { RestaurantHero } from '@/components/menu/RestaurantHero'
 import { DishDetail } from '@/components/DishDetail'
 import { ErrorState, LoadingState } from '@/components/Feedback'
 import { MenuHeader } from '@/components/MenuHeader'
@@ -164,6 +165,7 @@ export default function MenuPage() {
   return (
     <div className="min-h-dvh pb-28 bg-white">
       <MenuHeader tenant={menu.tenant} tableNumber={sessionState.session.tableNumber} />
+      <RestaurantHero tenant={menu.tenant} />
 
       <main className="mx-auto max-w-3xl px-4">
         {/* Search */}
@@ -244,30 +246,7 @@ export default function MenuPage() {
               className="space-y-6 pb-8"
             >
               {filteredCategories.map((category) => (
-                <section key={category.id} aria-labelledby={`category-${category.id}`}>
-                  <motion.h2
-                    id={`category-${category.id}`}
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 }}
-                    className="mb-3 text-xl font-playfair font-bold text-slate-900 tracking-tight"
-                  >
-                    {category.name}
-                  </motion.h2>
-                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {category.dishes.map((dish, i) => (
-                      <motion.div
-                        key={dish.id}
-                        initial={{ opacity: 0, y: 14 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.05 * i, duration: 0.4, ease: 'easeOut' }}
-                        className="flex flex-col"
-                      >
-                        <DishCard key={dish.id} dish={dish} onSelect={setDetail} />
-                      </motion.div>
-                    ))}
-                  </div>
-                </section>
+                <CategorySection key={category.id} category={category} onSelect={setDetail} />
               ))}
             </motion.div>
           )}

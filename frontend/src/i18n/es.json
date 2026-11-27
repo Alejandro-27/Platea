@@ -49,7 +49,8 @@
     "allergens": "Alérgenos: {{list}}",
     "rating": "{{rating}} · {{reviews}} valoraciones",
     "loadError": "No pudimos cargar la carta.",
-    "sessionError": "No pudimos abrir tu sesión. Vuelve a escanear el QR de la mesa."
+    "sessionError": "No pudimos abrir tu sesión. Vuelve a escanear el QR de la mesa.",
+    "restaurantDescription": "Descubre nuestra carta de {{name}}. Platos frescos, preparados con dedicación y listos para llevar a tu mesa."
   },
   "cart": {
     "title": "Tu pedido",

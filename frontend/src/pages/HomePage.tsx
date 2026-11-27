@@ -1,6 +1,9 @@
 import { motion } from 'framer-motion'
 import { ArrowRight, QrCode, Send, Star, Phone } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
+import { getTenantBySlug } from '@/lib/api'
+import { DEMO_TENANT_SLUG, DEMO_TABLE_NUMBER } from '@/lib/demo'
 
 interface Feature {
   title: string
@@ -28,6 +31,17 @@ const FEATURES: Feature[] = [
 
 export function HomePage() {
   const { t, i18n } = useTranslation()
+  const navigate = useNavigate()
+
+  const handleDemoClick = async () => {
+    try {
+      const tenant = await getTenantBySlug(DEMO_TENANT_SLUG)
+      navigate(`/menu/${tenant.id}?table=${DEMO_TABLE_NUMBER}`)
+    } catch {
+      // Si no se puede resolver el demo, se ignora silenciosamente.
+      // El usuario aún puede escanear un QR real desde el landing.
+    }
+  }
 
   return (
     <div className="flex min-h-dvh flex-col bg-white text-slate-900">
@@ -113,6 +127,7 @@ export function HomePage() {
             <motion.button
               whileHover={{ y: -1 }}
               whileTap={{ scale: 0.98 }}
+              onClick={handleDemoClick}
               className="px-6 py-3.5 text-sm font-semibold rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
             >
               {t('home.ctaDemo')}
